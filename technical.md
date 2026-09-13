@@ -76,6 +76,16 @@ These are preliminary investigation candidates from the assignment, not validate
 | Streamlit | Would a small interactive interface help the intended audience explore the verified data? Establish the audience and required interactions first. |
 | Google Cloud/Gemini | Is there a concrete cloud or language-model task that supports the project question? Check usefulness, costs, access, and output verification before considering use. |
 
+## Technical considerations for the two audiences
+
+### Audience A — IFAD program officer
+
+The verified remittance-price data can support corridor-level cost analysis using pandas and flat files, with Streamlit as a possible later interface for interactive comparisons. Open technical question: Which corridor-level cost measures and filters would best support IFAD program prioritization?
+
+### Audience B — CHIRLA campaign researcher
+
+The remittance data can identify high-cost U.S.-origin corridors, but auxiliary data would be needed to connect those corridors to specific immigrant communities. Census/ACS country-of-birth data would only be a proxy and does not show actual remittance behavior. Open technical question: What auxiliary data could validate the corridor-to-community links relevant to CHIRLA?
+
 ## Flat files vs PostgreSQL
 
 The two main sheets contain **253,960 data rows** in total. Row count alone does not establish a need for PostgreSQL. Before deciding, the team should check:
@@ -102,7 +112,7 @@ Further package choices for Parquet, database access, interfaces, or Gemini shou
 ## Recommended next investigation
 
 1. PDF cover verification is complete: the visible cover confirms Issue 54, September 2025, matching the expected Q3 2025 report.
-2. Agree on one audience question and a small set of representative queries.
+2. Agree on a question and a small set of representative queries for each of the two audiences.
 3. In a separately authorized step, create UTF-8 CSV derivatives as Section 4 describes, retaining the original workbook. Compare row counts and verification statistics, then measure read time and memory. Consider Parquet as a separate comparison if useful.
 4. Review schema compatibility, data types, and refresh requirements before testing PostgreSQL or related services.
 
