@@ -1,24 +1,57 @@
 # Data loading and cleaning
 
+## Design
+
+Use Python with `pandas`, `openpyxl` and `matplotlib`. Manage the environment with `uv`.
+
+The data workflow has two pieces:
+
+| Piece | Receives | Returns | Must not do |
+|---|---|---|---|
+| `prepare_data.py` | World Bank Excel workbook | Cleaned compressed CSV | Display views or respond to user controls |
+| `load_data.py` | Cleaned CSV path | Validated pandas DataFrame | Reopen or clean the Excel workbook |
+
+Each view receives the loaded DataFrame and typed settings. A view returns either a table or a Matplotlib figure without opening files or changing another view.
+
 ## A. Prepare the data — `src/prepare_data.py`
 
-Use the World Bank Remittance Prices Worldwide workbook `rpw_dataset_2011_2025_q3.xlsx`. The PDF report provides context but is not a source of data rows.
+### Source
 
-### Select the relevant data
+Use the workbook downloaded by the sibling `dataset_wb-remittance-prices` repository.
 
-Read these workbook sheets:
+Download it once:
 
-- `Dataset (from Q2 2016)`: the modern quote data.
-- `Countries`: country codes and descriptive fields.
-- `Legend`: definitions of the published columns.
+```bash
+cd ../dataset_wb-remittance-prices
+uv run python download_data.py
+```
 
-Keep only rows where `source_code` equals `USA`. This produces 29,542 U.S.-origin quotes covering 37 available periods from `2016_2Q` through `2025_3Q`.
+The preparation script reads only the modern data sheet:
 
-Do not include `Dataset (up to Q1 2016)`. Its structure differs from the modern sheet, and the project vision only uses recent periods.
+```python
+pd.read_excel(
+    workbook_path,
+    sheet_name="Dataset (from Q2 2016)",
+    usecols="A:AP",
+    dtype=str,
+)
+```
 
-### Standardize the columns
+Reading `A:AP` excludes five undocumented columns beyond the published 42-column schema.
 
-Convert column names to lowercase snake case. For example:
+One row represents one provider’s remittance service in one corridor during one survey period. A provider can have multiple rows because its services may use different payment instruments, access points, speeds or pickup methods.
+
+### Rows
+
+Keep only rows where `source_code` equals `USA`. The prepared data should contain 29,542 U.S.-origin quotes from `2016_2Q` through `2025_3Q`.
+
+Do not use `Dataset (up to Q1 2016)`. It has an older structure, while the project vision uses recent periods from the modern sheet.
+
+Do not remove rows based only on repeated firm or corridor values. Check and report repeated IDs and exact duplicate rows before writing the output.
+
+### Columns and types
+
+Convert column names to lowercase snake case. Examples include:
 
 - `payment instrument` → `payment_instrument`
 - `access point` → `access_point`
@@ -29,112 +62,138 @@ Convert column names to lowercase snake case. For example:
 - `pickup method` → `pickup_method`
 - `Standard Note` → `standard_note`
 
-Drop the five undocumented columns named `Unnamed: 42` through `Unnamed: 46`. They are not defined in the workbook’s legend.
+Apply these types:
 
-Keep the documented published columns because they may provide useful details about providers, costs, transfer methods and destinations.
-
-### Types
-
-- Treat `id`, country codes, currency codes and `corridor` as strings.
+- Keep `id`, country codes, currency codes and `corridor` as strings.
 - Convert amounts, fees, exchange rates, FX margins and total-cost percentages to numbers.
-- Convert `date` to a date. Handle both text dates and Excel date cells.
-- Keep `period` as text and add a sortable `period_start` date based on its year and quarter.
-- Leave missing numeric values blank rather than replacing them with zero.
+- Convert `date` to a date, handling both text dates and Excel date cells.
+- Keep `period` as text.
+- Add `period_start`, using the first day of the quarter so periods sort correctly.
+- Preserve missing numeric values as missing rather than replacing them with zero.
 
-### Text cleaning
+### Text and labels
 
-Strip leading and trailing spaces and collapse repeated internal spaces in all text columns.
+Strip leading and trailing spaces and collapse repeated internal spaces in text columns.
 
-Normalize `transparent` to lowercase `yes` or `no`. Stop and report the problem if another nonblank value appears.
+Normalize `transparent` to lowercase `yes` or `no`. Stop with a clear error if another nonblank value appears.
 
-Preserve provider capitalization after whitespace cleaning because company names may use intentional capitalization.
+Preserve provider capitalization after whitespace cleaning.
 
-Replace the workbook’s `..` placeholder with a missing value in country classification columns.
+Replace `..` with a missing value in country classification columns.
 
-### Corridors and countries
-
-Keep the published `corridor` value rather than rebuilding it from the country codes.
-
-Add a readable `corridor_label` using the source and destination names:
+Keep the published `corridor` value. Add `corridor_label` from the country names, such as:
 
 ```text
-United States → Mexico
+United States to Mexico
 ```
-
-Use the `Countries` sheet to check destination codes, names, regions, income groups, lending categories and G8/G20 membership. Report unmatched codes without silently deleting their quote rows.
 
 ### Costs and transparency
 
-Keep the published costs for both transfer amounts:
+Use `cc1_total_cost_pct` as the cost of sending the $200-equivalent amount. Keep `cc2_total_cost_pct` for the $500-equivalent amount.
 
-- `cc1_total_cost_pct`: cost of sending the first amount, normally the $200-equivalent basket.
-- `cc2_total_cost_pct`: cost of sending the second amount, normally the $500-equivalent basket.
+Keep reported cost values unchanged. Print their minimum and maximum and the number below zero so unusual values can be reviewed rather than silently removed.
 
-Do not silently cap or remove negative or unusually high costs. Print their counts for review.
+Keep non-transparent quotes in the prepared data. When `transparent` is `no`, a zero FX margin means the margin was not disclosed, not that it was free.
 
-Keep non-transparent quotes in the cleaned data. A zero FX margin where `transparent` is `no` means that the margin is unknown, not necessarily zero.
+Views must calculate median costs using only rows where `transparent` equals `yes`. They must count non-transparent quotes separately.
 
-Views that calculate median costs must use only rows where `transparent` equals `yes`. Non-transparent quotes must be counted and reported separately.
+### Output
 
-### Output and checks
-
-Write the prepared data to:
+Write the prepared data as UTF-8 to:
 
 ```text
 data/rpw_usa_clean.csv.gz
 ```
 
-Before writing it, print:
+Write to a temporary file first and rename it only after validation succeeds. Add generated data files to `.gitignore`. Running the script again with the same workbook must produce the same result.
 
-- Input and output row counts.
-- Columns found in the source sheet.
-- First and last periods.
-- Number of periods, corridors and firms.
-- Missing values in the cost columns.
-- Counts of `yes` and `no` in `transparent`.
-- Repeated IDs and exact duplicate rows.
-- Unmatched country codes.
-- Counts of negative or unusually high costs.
+The preparation function has this contract:
 
-The current workbook should produce:
-
-- 29,542 rows.
-- 37 available periods.
-- 42 U.S.-origin corridors.
-- 88 provider names.
-- No repeated IDs or exact duplicate rows.
-- No missing values in `cc1_total_cost_pct`.
-- 29,520 transparent quotes and 22 non-transparent quotes.
-
-Write to a temporary filename first and rename it only after all checks pass. Running the script again with the same workbook must produce the same cleaned file.
+```python
+def prepare_data(input_path: str, output_path: str) -> None:
+    """Prepare modern U.S.-origin remittance quotes and write a compressed CSV."""
+```
 
 ## B. Load the data — `src/load_data.py`
 
-This piece has one job: load the prepared file and return a pandas DataFrame.
-
-Its contract is:
+Load the complete prepared dataset once when the tool starts:
 
 ```python
 def load_data(path: str) -> pd.DataFrame:
     """Load and validate all prepared U.S.-origin remittance quotes."""
 ```
 
-When the tool starts, call `load_data` once and load all 29,542 prepared rows into pandas. Parse `date` and `period_start` as dates and verify that the required columns exist.
+Parse `date` and `period_start` as dates and verify the required columns and allowed transparency values.
 
-Views must never open the Excel workbook or cleaned file themselves. Each view receives the loaded DataFrame and the typed settings it needs.
+Loading all 29,542 prepared rows into pandas is appropriate for a laptop and allows user interactions to run against data already in memory. Views must not reload the CSV or Excel workbook.
 
-On each user action, the tool filters or summarizes the DataFrame already in memory. It does not reload or clean the workbook.
+For later cloud deployment, run the same preparation step during deployment and load the compressed CSV once when the application starts.
 
-## C. Settings and view contracts
+## C. Typed settings and view contracts
 
-Keep settings in Python code rather than a TOML file. Use a typed settings object containing:
+Keep shared settings in Python code rather than a TOML file:
 
-- Cost column: `cc1_total_cost_pct`
-- Number of recent available periods: `4`
-- Cost threshold: `5.0`
-- Transparency column: `transparent`
+```python
+from dataclasses import dataclass
 
-The latest four available periods in the current data are:
+
+@dataclass(frozen=True)
+class Settings:
+    cost_column: str = "cc1_total_cost_pct"
+    recent_periods: int = 4
+    cost_threshold: float = 5.0
+    transparent_value: str = "yes"
+```
+
+A view follows this contract:
+
+```python
+from matplotlib.figure import Figure
+
+
+def build_view(
+    data: pd.DataFrame,
+    settings: Settings,
+) -> pd.DataFrame | Figure:
+    """Return one table or figure without opening files or changing the screen."""
+```
+
+User choices such as destination, sorting method and selected corridor are passed to the appropriate view rather than stored as hidden global state.
+
+## Build order and checks
+
+Build and verify the data pieces in this order:
+
+1. Download the workbook.
+2. Build and run `prepare_data.py`.
+3. Compare its output with the expected counts.
+4. Build `load_data.py`.
+5. Load the prepared file and check its columns and types.
+6. Pass a small DataFrame to each view before connecting it to the interface.
+
+Run the preparation script from the project root:
+
+```bash
+uv run python src/prepare_data.py
+```
+
+The preparation piece is done when it reports:
+
+| Check | Expected result |
+|---|---:|
+| Rows | 29,542 |
+| Available periods | 37 |
+| First period | `2016_2Q` |
+| Last period | `2025_3Q` |
+| Corridors | 42 |
+| Cleaned provider names | 88 |
+| Missing `cc1_total_cost_pct` | 0 |
+| Transparent quotes | 29,520 |
+| Non-transparent quotes | 22 |
+| Repeated IDs | 0 |
+| Exact duplicate rows | 0 |
+
+The latest four available periods must be:
 
 ```text
 2024_3Q
@@ -143,16 +202,4 @@ The latest four available periods in the current data are:
 2025_3Q
 ```
 
-Do not assume that every calendar quarter exists.
-
-Each view must have a clear contract similar to:
-
-```python
-def build_view(
-    data: pd.DataFrame,
-    settings: Settings,
-) -> pd.DataFrame | matplotlib.figure.Figure:
-    """Return a table or figure without reading files or changing the screen."""
-```
-
-The preparation script cleans and limits the source data once. The loader loads the complete prepared dataset once at startup. Each view receives the DataFrame, calculates one result and returns a table or Matplotlib figure.
+The code must select the latest four available values rather than assuming every calendar quarter exists.
