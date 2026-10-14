@@ -12,13 +12,17 @@ The component receives a filtered pandas DataFrame from the Filter Data componen
 
 Required fields:
 
-| Field | Description |
-| sending_country | Country where the transfer originates |
-| receiving_country | Country receiving the transfer |
-| reporting_period | Reporting quarter or period |
-| total_cost_pct | Total transfer cost as a percentage |
-| transfer_fee | Transfer fee, if available |
-| exchange_rate_margin | Exchange-rate margin, if available |
+sending_country: Country where the transfer originates.
+
+receiving_country: Country receiving the transfer.
+
+reporting_period: Reporting quarter or period.
+
+total_cost_pct: Total transfer cost as a percentage.
+
+transfer_fee: Transfer fee, if available.
+
+exchange_rate_margin: Exchange-rate margin, if available.
 
 The input should already contain only records matching the researcher's selected countries, reporting periods, and transfer amount.
 
