@@ -27,13 +27,15 @@ Staff care about time, quality, freshness, privacy and explainability. Use no pe
 
 | Piece | Files | Input → output |
 |---|---|---|
-| Prepare Data | `src/prepare_data.py`, startup `src/load_data.py` | Workbook → validated compressed CSV → in-memory prepared table. |
+| Prepare Data | `src/prepare_data.py`, startup `src/load_data.py` | Workbook → validated compressed CSV plus preparation report → in-memory prepared table plus preparation metadata. |
 | Filter Data | `src/filter_data.py` | Prepared table + period/destination lists → unchanged-schema matching copy. |
 | Calculate Summaries | `src/calculate_summaries.py` | Matching quotes + explicit current inputs → `AnalysisResults`. |
 | Present Results | `src/present_results.py` | Result bundle → notebook tables, warnings and figures. |
 | Export Briefing | `src/export_briefing.py` | Same bundle → unique standalone HTML path on explicit request. |
 
 Shared types/schema validation live in `src/contracts.py`; relevance loading in `src/load_relevance.py`; orchestration in `analysis.ipynb`. Shared rendering helpers may draw/format existing results, never calculate measures. No function mutates caller tables/lists, reads hidden notebook globals or relies on another component's internals. Do not introduce generic Settings/build_view contracts or cost-threshold filtering.
+
+This specification supersedes the amount-filter description in `01-design.md`: Filter Data selects periods/destinations only; Calculate Summaries owns the single run-level transfer amount (§6). Do not modify the source design document.
 
 ## 2. Data, environment and execution
 
@@ -53,13 +55,16 @@ uv run jupyter lab analysis.ipynb
 
 Clone the dataset URL as a sibling first if absent. Its downloader writes beside itself and may fetch a newer filename: print its actual path and substitute it explicitly in `--input`; never silently choose among workbooks. If download fails, follow the dataset repository's browser instructions. Preparation with no CLI arguments uses the baseline input path above and output `data/rpw_usa_clean.csv.gz`; missing files give actionable errors.
 
-Generated files: compressed CSV, validation/change report beside it, and `exports/*.html`; ignore generated data, exports and notebook checkpoints in Git. Keep relevance separate; supply only a header template, never fictional researcher entries. Outputs stay local. Future cloud plan: validated preparation at deployment, CSV loaded once per process, user-isolated settings/results, web tables/charts and HTML download around unchanged calculation contracts. No live API, database or interactive plotting backend is needed.
+Generated files: compressed CSV, its validation/change report, transaction/recovery directories and `exports/*.html`; ignore generated data, transaction artifacts, exports and notebook checkpoints in Git. Keep relevance separate; supply only a header template, never fictional researcher entries. Outputs stay local. Future cloud plan: validated preparation at deployment, CSV loaded once per process, user-isolated settings/results, web tables/charts and HTML download around unchanged calculation contracts. No live API, database or interactive plotting backend is needed.
 
 ## 3. Prepare and load
 
 ```python
 def prepare_data(input_path: str, output_path: str) -> None: ...
 def load_data(path: str) -> pd.DataFrame: ...
+def load_preparation_metadata(
+    report_path: str, prepared_data_path: str
+) -> PreparationMetadata: ...
 ```
 
 Read only `Dataset (from Q2 2016)`, `usecols="A:AP"`, initially `dtype=str`: 42 published columns. Do not combine the differently structured older sheet; ignore undocumented columns beyond AP. One row is a provider's service in one corridor during one survey round. Multiple services from the same provider/corridor/period are legitimate. Retain only USA-origin rows in prepared output.
@@ -91,9 +96,22 @@ Hard rules:
 - Stop for exact duplicate rows including ID or duplicate verified quote keys. Report affected/excess-row counts, keys, source rows, periods, corridors and providers. Never automatically drop or silently retain confirmed duplicates. Different valid IDs with otherwise identical service details remain separate.
 - Retain non-transparent and missing-cost quotes. A non-transparent zero margin means undisclosed, not free. Access-point warnings (§6) do not stop analysis.
 
-Write UTF-8 compressed CSV via a temporary file, validating before atomic rename. Failure must preserve prior valid output. Same workbook gives identical table content/diagnostics except labeled execution timestamps. Record source filename/fingerprint; save validation/change report beside CSV, show it at notebook startup, and explicitly pass its change/warning summary to report metadata.
+Write the compressed CSV canonically so identical prepared tables produce identical bytes and SHA-256 values within the pinned environment. Preserve retained source-worksheet row order. Write columns in the exact published order listed above followed by `period_start,corridor_label`; write no index. Serialize UTF-8 CSV with `\n` line endings and a final line ending, RFC-style minimal quoting/doubled quote escaping, empty fields for missing values, dates as ISO `YYYY-MM-DD` and finite numeric values with round-trip-stable `%.17g` formatting. Do not allow locale or platform defaults to alter the bytes. Compress those canonical CSV bytes with gzip level 9, `mtime=0` and an empty original-filename header so execution time and temporary/final paths do not affect the output.
 
-`load_data` reads CSV once, preserves string IDs/codes, parses date/period_start and validates schema/types, USA-only rows, unique key, period-start agreement, country-name consistency and yes/no flags. It never reopens/cleans Excel; errors direct regeneration rather than repair.
+Write the deterministic CSV and its report as one transaction. The report path is `<output_path>.validation.json` (for example, `data/rpw_usa_clean.csv.gz.validation.json`). Report schema version 1 records source filename/SHA-256, prepared filename/SHA-256, UTC preparation timestamp, validation summary, baseline-change summary and preparation warnings. The timestamp exists only in the report; identical prepared tables produce identical compressed bytes and prepared SHA-256.
+
+Stage and validate both artifacts, including their filename/fingerprint relationship, before replacement. Retain the prior valid pair in one uniquely identified transaction directory until both new final files validate. Any replacement/final-validation failure restores and revalidates the prior pair; a first-run failure leaves no ready pair. Cleanup touches only transaction-created paths. A pair is ready only when both final files exist and the report matches the CSV.
+
+Startup is read-only. Missing/malformed/mismatched final files or an incomplete transaction stop loading without changing final or recovery files. Identify every internally valid backup pair by transaction directory, never combine pairs or choose among them, and provide these exact commands with actual paths:
+
+```bash
+uv run python src/prepare_data.py --check-recovery <transaction-directory> --output <output-path>
+uv run python src/prepare_data.py --recover <transaction-directory> --output <output-path>
+```
+
+`--check-recovery` validates the chosen pair, report schema, fingerprints and intended final paths without writes. `--recover` is a separate explicit action that requires a passing check, installs only that pair transactionally and revalidates the result. Preserve recovery artifacts until success; startup invokes neither action.
+
+At notebook startup, validate the final CSV/report pair before exposing either artifact to analysis. `load_preparation_metadata` reads the JSON report once, validates its schema/types and verifies that its prepared filename and SHA-256 match the CSV before returning `PreparationMetadata`. `load_data` parses the verified CSV once, preserves string IDs/codes, parses date/period_start and validates schema/types, USA-only rows, unique key, period-start agreement, country-name consistency and yes/no flags. A missing, malformed or mismatched final pair produces the read-only recovery error above; never reconstruct the report, repeat preparation or alter files during startup. Neither loader reopens or cleans Excel. Pass the loaded preparation metadata unchanged through the current analysis result bundle.
 
 ### Release-specific regression baseline
 
@@ -115,7 +133,7 @@ New releases may change rows, periods, destinations and providers. Show a visibl
 
 ## 4. Researcher choices, startup and filtering
 
-Startup loads the prepared table, displays available choices, loads relevance and renders the initial analysis. Defaults: latest available quarter, MEX, USD 200, default weights. Mexico is illustrative, not a recommendation. Never silently substitute if MEX is unavailable: show validation error/options. No four-period default and no automatic restore of previous sessions; saved notebook cells may retain written values.
+Startup loads the prepared table, displays available choices, loads relevance and renders the initial analysis. The notebook accepts exactly one transfer amount per analysis run. Defaults: latest available quarter, MEX, USD 200, default weights. Mexico is illustrative, not a recommendation. Never silently substitute if MEX is unavailable: show validation error/options. No four-period default and no automatic restore of previous sessions; saved notebook cells may retain written values.
 
 ```python
 available_periods = sorted(quotes["period"].unique(), reverse=True)
@@ -124,7 +142,9 @@ destination_codes = ["MEX"]
 transfer_amount_usd = 200
 ```
 
-Before choices, reject empty prepared data, missing/blank required source_code/period/destination_code/destination_name, non-USA rows, invalid period format and conflicting destination names. Display periods newest first as 2025 Q3, destinations alphabetically with codes. Allow multiple choices; an empty list means all available for that dimension. Do not assume calendar continuity (reference lacks 2025_2Q).
+Before choices, reject empty prepared data, missing/blank required source_code/period/destination_code/destination_name, non-USA rows, invalid period format and conflicting destination names. Display periods newest first as 2025 Q3, destinations alphabetically with codes. Allow multiple choices; an empty requested list means all values available for that dimension in the full prepared table. Do not assume calendar continuity (reference lacks 2025_2Q).
+
+Before filtering, preserve the user's lists as `requested_periods` and `requested_destination_codes`, then create explicit `resolved_periods` and typed `resolved_destinations` from the full prepared choices and its validated one-to-one destination code/name mapping. Each resolved destination contains both `destination_code` and `destination_name`. For an empty request, use every available value; for a nonempty request, use exactly the validated selected values. Order resolved periods chronologically by year and quarter for chart axes, never by collection date, and order resolved destinations alphabetically by validated destination name then code. Do not add calendar quarters or destinations absent from the full prepared table. Pass the codes from the resolved destinations to filtering and pass both requested selections and resolved entries to calculation for metadata; presentation and export must not recover them from filtered rows, prepared data or notebook globals.
 
 ```python
 def filter_quotes(quotes: pd.DataFrame, periods: list[str],
@@ -133,7 +153,7 @@ def filter_quotes(quotes: pd.DataFrame, periods: list[str],
 
 Filter requires only source_code, period, destination_code; validate those fields and nonempty prepared input. Validate all requested values against full input before filtering and name every invalid selection. OR within each dimension, AND dimensions. Valid destinations absent in a chosen period yield a valid empty result.
 
-Return `quotes.loc[mask].copy()` with a row-aligned mask, original column/row order and every input column. Never mutate inputs, read files, aggregate, rank, deduplicate, fill or filter by amount/weights/relevance. Preserve all missing costs/transparency states. Pass amount and weights to calculation. Selection/contract errors stop the run and clear/invalidate prior results; no stale export. Preparation errors direct regeneration; selection errors direct choosing displayed options.
+Return `quotes.loc[mask].copy()` with a row-aligned mask, original column/row order and every input column. Never mutate inputs, read files, aggregate, rank, deduplicate, fill or filter by amount/weights/relevance. Preserve all missing costs/transparency states. Selection/contract errors clear prior results and prevent stale export; preparation errors direct regeneration, and selection errors show valid options.
 
 ### Separate relevance CSV
 
@@ -149,7 +169,7 @@ def load_relevance(path: str, valid_destination_codes: set[str]) -> pd.DataFrame
 
 Validate against full prepared destinations, not just selection. At most one row per destination. Supplied ratings are finite numeric 0–5; dates are actual calendar dates in strict YYYY-MM-DD. Duplicate/unknown codes, blank supplied destination identity, invalid ratings and invalid nonblank dates raise clear row/field errors. Validate supplied nonblank values even if another field is incomplete.
 
-Missing file/header-only file means no documented relevance. Missing destination or blank rating/rationale/source/date leaves it unscored with explanation but descriptive analyses continue. Complete rating 0 is valid; missing is never 0. Preserve partial evidence separately; label all relevance researcher judgment with rationale/source/date. Never invent entries or infer community relevance from quote counts: the dataset has no customer/population/firm-market-share weights.
+Missing file/header-only file means no documented relevance. A destination with no relevance entry, or an entry with blank rating/rationale/source/date, has an unavailable relevance component with an explanation; it is unscored only when relevance has positive weight, and descriptive analyses continue in either case. Complete rating 0 is valid; missing is never 0. Preserve partial evidence separately; label all relevance researcher judgment with rationale/source/date. Never invent entries or infer community relevance from quote counts: the dataset has no customer/population/firm-market-share weights.
 
 ## 5. Shared result contract
 
@@ -167,15 +187,35 @@ class ScoringWeights:
     relevance: float = 0.25
 
 @dataclass(frozen=True)
+class PreparationMetadata:
+    report_schema_version: int
+    source_filename: str
+    source_sha256: str
+    prepared_filename: str
+    prepared_sha256: str
+    prepared_at_utc: pd.Timestamp
+    validation_summary: tuple[str, ...]
+    change_summary: tuple[str, ...]
+    preparation_warnings: tuple[str, ...]
+
+@dataclass(frozen=True)
+class ResolvedDestination:
+    destination_code: str
+    destination_name: str
+
+@dataclass(frozen=True)
 class AnalysisMetadata:
-    selected_periods: tuple[str, ...]  # empty = all available
-    selected_destination_codes: tuple[str, ...]  # empty = all available
+    requested_periods: tuple[str, ...]  # empty means the user requested all available
+    requested_destination_codes: tuple[str, ...]  # same empty-list meaning
+    resolved_periods: tuple[str, ...]  # explicit, available and chronological
+    resolved_destinations: tuple[ResolvedDestination, ...]  # explicit and available
     transfer_amount_usd: int
     weights: ScoringWeights
     matching_row_count: int
     collection_date_min: pd.Timestamp | None
     collection_date_max: pd.Timestamp | None
-    validation_flags: tuple[str, ...]
+    preparation: PreparationMetadata
+    runtime_validation_warnings: tuple[str, ...]
 
 @dataclass(frozen=True)
 class AnalysisResults:
@@ -190,16 +230,21 @@ class AnalysisResults:
 def calculate_summaries(
     filtered_data: pd.DataFrame, transfer_amount_usd: int,
     relevance_inputs: pd.DataFrame, weights: ScoringWeights,
-    periods: list[str], destination_codes: list[str],
-    validation_flags: tuple[str, ...] = (),
+    requested_periods: list[str], requested_destination_codes: list[str],
+    resolved_periods: list[str],
+    resolved_destinations: list[ResolvedDestination],
+    preparation: PreparationMetadata,
+    runtime_validation_warnings: tuple[str, ...] = (),
 ) -> AnalysisResults: ...
 
-def present_results(results: AnalysisResults) -> None: ...
+def present_results(
+    results: AnalysisResults, provider_preview_rows: int = 100
+) -> None: ...
 
 def export_briefing(results: AnalysisResults, output_dir: str = "exports") -> Path: ...
 ```
 
-Calculation accepts prepared names, internally mapping source_name→sending_country, destination_name→receiving_country and period→reporting_period. Group by country codes, retaining validated labels. Notebook passes exact filter selections, current amount/weights and separate validated relevance; calculation snapshots metadata. Pass preparation/change warnings explicitly and append current warnings, never use hidden DataFrame attributes.
+Calculation accepts prepared names, internally mapping source_name→sending_country, destination_name→receiving_country and period→reporting_period. Group by country codes, retaining validated labels. Notebook passes the requested and resolved selections, current amount/weights, separate validated relevance and the once-loaded `PreparationMetadata`; calculation validates that filtered rows use only resolved values and agree with every matching resolved code/name entry, then snapshots all inputs in metadata without rereading or rebuilding preparation information. Resolved values may legitimately have no matching filtered row. Keep `PreparationMetadata.preparation_warnings` separate from `runtime_validation_warnings`; append current access-point and analysis warnings only to the latter. Never use hidden DataFrame attributes.
 
 Schema abbreviations expand to exact columns:
 
@@ -215,9 +260,9 @@ Schema abbreviations expand to exact columns:
 | fee_summary | Matching corridor/observed selected-amount currency: Identity + `fee_currency,median_transfer_fee,fee_observations`. |
 | fx_margin_summary | Matching corridor/observed selected-amount currency: Identity + `fee_currency,median_exchange_margin,fx_margin_observations`; margins are percentages, currency a grouping label. |
 
-Counts are nonnegative integers; 6.0 means 6%, shares/normalized scores 0–1. Missing numbers stay NaN/pandas NA; dates NaT; optional date bounds None; missing text nullable strings. unscored_reasons is a tuple, empty when scored. Preserve partial relevance documentation but leave incomplete relevance ineligible. Never store display labels in numeric fields.
+Counts are nonnegative integers; 6.0 means 6%, shares/normalized scores 0–1. Missing numbers stay NaN/pandas NA; dates NaT; optional date bounds None; missing text nullable strings. `unscored_reasons` is a tuple, empty when every positive-weight component is available. Preserve partial relevance documentation; incomplete relevance is ineligible when relevance has positive weight but may remain missing when its weight is zero. Never store display labels in numeric fields.
 
-All six tables retain complete schemas/types when empty. Zero matching quotes → six empty tables, matching count 0, no date bounds; do not invent absent corridor/period rows or zero shares. Nonempty groups with no eligible costs remain with missing median/count 0 and actual transparency. Fee/margin groups with no eligible metric retain missing median/count 0; unknown-currency groups remain separate/labeled unknown, never USD. Date bounds use nonmissing matching dates; both None if unavailable. Keep missing individual dates missing.
+All six tables retain complete schemas/types when empty. Zero matching quotes → six empty tables, matching count 0, no date bounds; preserve the resolved selections in metadata but do not invent absent corridor/period rows or zero shares. Nonempty groups with no eligible costs remain with missing median/count 0 and actual transparency. Fee/margin groups with no eligible metric retain missing median/count 0; unknown-currency groups remain separate/labeled unknown, never USD. Date bounds use nonmissing matching dates; both None if unavailable. Keep missing individual dates missing.
 
 ## 6. Calculation definitions
 
@@ -230,7 +275,7 @@ Validate required columns/types, amount and weights before aggregation. Empty fi
 | USD 200 | cc1_total_cost_pct | cc1_lcu_fee | cc1_fx_margin | cc1_lcu_code |
 | USD 500 | cc2_total_cost_pct | cc2_lcu_fee | cc2_fx_margin | cc2_lcu_code |
 
-Reject other amounts. Never scale USD-200 costs to approximate USD-500 costs. Changing amount leaves row membership/transparency measures unchanged.
+Calculate Summaries validates the notebook's single current amount and uses the corresponding row in this mapping consistently for total costs, fees, FX margins and currencies in all six result tables. Reject other amounts. Never mix cc1 and cc2 fields within a run or scale USD-200 costs to approximate USD-500 costs. Changing amount leaves row membership and transparency measures unchanged.
 
 An eligible total-cost observation has transparent=yes and a nonmissing selected numeric cost. Corridor, corridor-period and corridor-channel medians/counts use exactly those eligible observations. Corridor medians pool all eligible quotes across selected periods, never median quarterly medians. Explain that periods with more eligible quotes contribute more observations; quote volume is not customer/market-share weighting. No persistence score.
 
@@ -238,7 +283,9 @@ For each group, total_quotes counts all matching rows; non_transparent_quotes co
 
 For fee and margin independently, use transparent rows with that specific metric nonmissing, reporting its own count; do not require valid total cost. Group by actual selected-amount currency and never pool currencies. Verify before labeling: all 29,542 audited U.S. quotes have USD in both currency fields, but preserve any other currency without conversion. Margins use documented percent units. Never imply median fee + median FX margin equals median total cost: units/observation sets differ and medians are not additive.
 
-Provider details map id→service_id, firm→provider, date→collection_date, plus selected metric fields. Retain every matching quote. Mask non-transparent margin/total cost as missing in this result copy only; display “Unknown—non-transparent” regardless of raw zero/other values. Preserve reported fee with actual currency even for non-transparent quotes. Transparent missing metrics display “Unknown—missing value”; a missing fee is always unknown, never 0. Visible non-transparent fees do not enter transparent-only fee aggregates.
+Provider details map id→service_id, firm→provider, date→collection_date, plus selected metric fields. Retain every matching quote. Calculate Summaries constructs `provider_details` with one stable ascending sort by prepared columns `destination_name`, `destination_code`, chronological `period`, `firm` and opaque string `id`, in that precedence. Parse period order by year/quarter rather than collection date or incidental string position; use a stable sorting algorithm so complete ties retain filtered input order. Then map the prepared names to result-contract names. Filter Data still preserves its input row order. Presentation takes the first `N` provider rows without sorting again, and export consumes the complete table in exactly the same order.
+
+Mask non-transparent margin/total cost as missing in this result copy only; display “Unknown—non-transparent” regardless of raw zero/other values. Preserve reported fee with actual currency even for non-transparent quotes. Transparent missing metrics display “Unknown—missing value”; a missing fee is always unknown, never 0. Visible non-transparent fees do not enter transparent-only fee aggregates.
 
 ### Channels
 
@@ -262,36 +309,43 @@ Exactly three components, all higher=greater campaign priority: pooled median co
 ```text
 valid_costs = all nonmissing selected corridor medians
 cost_normalized = (median_total_cost - min(valid_costs)) / (max(valid_costs) - min(valid_costs))
+                  # only when at least two are valid and the range is nonzero
 transparency_normalized = non_transparent_quote_share
 relevance_normalized = complete_documented_relevance_rating / 5
-campaign_priority_score = cost_weight * cost_normalized
-                        + transparency_weight * transparency_normalized
-                        + relevance_weight * relevance_normalized
+
+weighted_component(weight, value) = 0 if weight == 0
+                                    = unavailable if weight > 0 and value is missing
+                                    = weight * value otherwise
+campaign_priority_score = sum(the three weighted components)
 ```
 
-Cost min/max includes all selected valid-cost corridors, even without relevance. If valid medians are all equal (including one corridor), their normalized costs are 0; missing remains missing. No valid medians means no normalized costs. Preserve negative medians.
+Cost min/max includes all selected valid-cost corridors, even without relevance. Relative cost normalization requires at least two selected corridors with valid median costs. If fewer than two have valid medians, set `cost_normalized` missing for every corridor; do not treat the sole valid median as zero. No valid medians likewise means no normalized costs. If at least two corridors have valid medians and all those medians are equal, assign `cost_normalized = 0` to every corridor with a valid median; this means there is no relative cost difference within the current selection, not that actual cost is zero. Corridors with missing medians remain missing. Preserve each available raw median, including negative medians, for descriptive tables and trends.
 
-Default weights 0.50 cost, 0.25 transparency, 0.25 relevance. Allow researcher changes, requiring finite nonnegative values summing to 1 (only floating-point tolerance 1e-9). Reject invalid weights without auto-normalizing. Require all three components even with a zero component weight; missing component means missing final score, never fill/redistribute.
+Default weights 0.50 cost, 0.25 transparency, 0.25 relevance. Allow researcher changes, requiring every weight to be finite and nonnegative and the total to equal 1 within absolute tolerance 1e-9. Reject invalid weights without auto-normalizing.
 
-Explain in notebook/export that normalization is relative to the selected comparison set, so scores may change when selected corridors change. Show raw cost/share/relevance, normalized component scores, weights, final score and documented rationale/source/date (documentation can be an adjacent keyed table).
+For scoring eligibility, require a valid component value only when its weight is greater than zero. A zero-weight component contributes exactly zero and may be missing; implement this explicitly rather than relying on `0 * NaN`. If any positive-weight component is missing, leave the final score missing and list each such component as an unscored reason. In particular, when cost has positive weight and fewer than two selected corridors have valid median costs, leave the composite score unscored even for a corridor with an available raw median. When at least two valid medians are equal, their normalized zeros are valid component values, so scoring continues with the original weights and no redistribution. When cost has zero weight, unavailable relative cost is nonblocking under the same zero-weight rule as other components. Never redistribute weights. Keep missing zero-weight raw/normalized values missing so displays and exports do not imply evidence exists.
 
-Sort scored corridors by full-precision score descending, then destination name/code alphabetically. Unscored follow all scored, alphabetically by the same keys. List every applicable exact reason: `Missing median cost`, `Missing transparency share`, `Missing documented community relevance`. Incomplete documentation counts as missing relevance. Do not rank rounded values. Period rows sort by corridor and chronological quarter. Consumers preserve supplied ranking, never rerank by median cost.
+Explain in notebook/export that normalization is relative to the selected comparison set, so scores may change when selected corridors change. Also explain that positive-weight components are required, while a missing zero-weight component contributes zero without weight redistribution. Show raw cost/share/relevance, normalized component scores, weights, final score and documented rationale/source/date (documentation can be an adjacent keyed table); keep unavailable zero-weight components visibly missing.
+
+Sort scored corridors by full-precision score descending, then use destination name and destination code, both ascending, as explicit tie-breakers. Place every unscored corridor after every scored corridor, ordered by destination name then code ascending. Use stable sorting throughout. For positive-weight components only, list every applicable exact reason: `Missing median cost`, `Relative cost unavailable: at least two selected corridors with valid median costs are required`, `Missing transparency share`, `Missing documented community relevance`. Use the relative-cost reason for a corridor with a raw median when the selected comparison set has fewer than two valid medians; use `Missing median cost` for a corridor lacking its own median. Incomplete documentation counts as missing relevance. A missing zero-weight component is not an unscored reason. Do not rank rounded values. Consumers preserve supplied ranking and never rerank by median cost.
+
+Construct all remaining summaries with stable ascending sorts. Order `period_summary` by destination name, destination code and chronological reporting period. Order `channel_summary` by destination name/code and then the fixed category order Internet-only, Counter-only, Mixed, Other/unknown. Order `fee_summary` and `fx_margin_summary` by destination name/code, then known `fee_currency` codes alphabetically with unknown currency last. Apply currency ordering only to these two tables, where currency is part of the defined grain; never introduce currency grouping into corridor, period or channel percentage summaries merely for sorting. `provider_details` retains its separately defined stable order.
 
 ## 7. Presentation and briefing
 
-Render from the same current AnalysisResults, without recomputing, regrouping, reranking, filling or filtering:
+Render from the same current AnalysisResults, without recomputing, regrouping, reranking, filling or analytically filtering. The only permitted row slice is the disclosed notebook provider preview; it does not change the result bundle:
 
-1. Purpose; selected periods/destinations (empty lists = “All available”); amount/weights/matching count; actual collection-date range; preparation change summary and validation flags. Distinguish survey quarters, collection dates and export timestamp.
-2. Priority ranking with median cost/valid count, transparency count/denominator/share, researcher relevance, normalized components/weights/final score/unscored reasons, and supporting relevance documentation.
+1. Purpose; requested periods/destinations (empty requested lists display as “All available”) and their explicit resolved values; amount/weights/matching count; actual collection-date range; source/prepared fingerprints, preparation timestamp, validation/change summaries and preparation warnings from `metadata.preparation`; and separate runtime validation warnings. Distinguish survey quarters, collection dates, preparation timestamp and export timestamp.
+2. Priority ranking with raw measures/counts, relevance documentation, normalized components, weights, score and unscored reasons. Display the §6 explanations for insufficient cost comparisons, equal-cost relative zeros and unavailable zero-weight components; always retain actual medians and missing values.
 3. Currency-specific fee and margin tables with explicit units and their own counts.
-4. Selected-period median-cost and non-transparent-share charts, one labeled series per corridor. Shared chronological period axis, available points marked, missing/no-quote corridor-periods left as gaps; do not connect across gaps. No smoothing/interpolation/zero fill. One point implies no direction. Axis alignment is rendering, not analytical aggregation.
+4. Selected-period median-cost and non-transparent-share charts, one labeled series per resolved destination. Use `metadata.resolved_periods` as the shared chronological axis and `metadata.resolved_destinations` as the selected series universe. Use each entry's validated country name and code for labels even when it has no matching result rows. Mark available result points; show resolved combinations absent from `period_summary` as gaps or “No data,” never as zero values or fabricated analytical rows. Do not connect across gaps, smooth, interpolate or zero-fill. One point implies no direction. Axis alignment is rendering, not analytical aggregation.
 5. Channel evidence with all observed categories; retain the four-category legend, identify absent categories as no observations without fabricated medians. No causal/customer-weighted claims.
-6. Complete service-level provider table with agreed unknown labels. Do not aggregate services or silently truncate exported evidence.
+6. Service-level provider evidence with agreed unknown labels. In the notebook, show a configurable preview of the first `provider_preview_rows` rows in the table's defined order, defaulting to 100, and label it `Showing X of Y service rows`. Explain beside the preview that the HTML export contains the complete table. Previewing is presentation-only: never slice or replace `results.provider_details`, and never let the preview limit calculations, summaries, counts, charts or export rows. The HTML export includes all `Y` matching service rows in the same defined order without aggregation or truncation.
 7. Limitations: historical sampled quotes, changing survey composition, quote counts not customers/market shares, pooled-quarter weighting, selection-relative normalization, documented subjective relevance, and checking current prices/community relevance before publishing. Do not claim improvement or automatically recommend a corridor without supporting evidence; staff decide.
 
-Use pandas/IPython display and static Matplotlib. Leave minor styling/wording to the builder. Clear prior displays and close/replace figures on reruns and errors. Metadata matching_row_count=0 displays `No matching quotes` with current settings/warnings; omit empty tables/charts. Quotes without eligible costs retain transparency/provider evidence and an explicit cost-unavailable explanation. Never leave stale results exportable.
+Use pandas/IPython display and static Matplotlib. Leave minor styling/wording to the builder. Validate `provider_preview_rows` as a positive integer; `X` is `min(provider_preview_rows, Y)`. Clear prior displays and close/replace figures on reruns and errors. Metadata matching_row_count=0 displays `No matching quotes` with current settings/warnings; omit empty tables/charts and report `Showing 0 of 0 service rows` only where the provider section is rendered. Quotes without eligible costs retain transparency/provider evidence and an explicit cost-unavailable explanation. Never leave stale results exportable.
 
-Export validates schemas (ValueError lists every missing column), writes UTF-8 standalone HTML only on explicit cell/function action, creates exports/ if needed and returns actual Path/local link. Unique filename, e.g. remitright_briefing_20261016_183400.html, including collisions in one second; never overwrite. Use pathlib/datetime/io/base64/html; escape dynamic text, embed PNGs as base64, close figures. Include the same settings, evidence, charts, warnings and order as notebook. No external assets, network request, automatic sharing or additional reporting engine. Empty/partially missing results still export a useful current briefing. HTML opens offline and prints readably to PDF in a browser.
+Export validates schemas (a `ValueError` names every missing column), writes UTF-8 standalone HTML only on explicit request, creates `exports/` if needed and returns its actual Path/link. Use unique collision-safe names such as `remitright_briefing_20261016_183400.html`; never overwrite. Escape dynamic text, embed and close base64 PNG figures, and use no external assets, network requests, automatic sharing or added reporting engine. Match notebook settings, evidence, charts, warnings and order, with the complete provider table required above. Empty/partial results remain useful and the HTML opens offline and prints readably to PDF.
 
 ## 8. Build order and acceptance checks
 
@@ -301,7 +355,13 @@ Build environment/contracts, preparation/loading and diagnostics first; test fil
 
 Independently compare current-release references with raw modern-sheet counts. Check ID uniqueness across all periods, currencies, types, 37 quarters and absent 2025_2Q. Independently count USA/MEX 2025_3Q (baseline 46). New-release reports show changed counts/coverage and dynamic latest default.
 
-Fixtures: exact repeated row fails; repeated verified key with otherwise different fields fails; different valid IDs with identical details survive. Error includes duplicate counts/keys/source rows and leaves old output intact. Malformed numeric/impossible date fails with column/rows/examples; genuine missing stays missing; valid negative and true zero survive; native/text dates agree. Blank/unknown transparency fails. Same workbook yields identical table content. Loader rejects corrupt schema/types/period starts, reads no Excel.
+Checks:
+
+- Exact repeated rows and repeated verified keys fail with counts, keys, source rows and context; different IDs with identical details survive and failures preserve old output.
+- Malformed supplied numeric/date values fail with column/rows/examples; genuine missing, negative and zero values survive; native/text dates agree; blank/unknown transparency fails.
+- Two preparations with different times and paths have identical canonical CSV content, compressed bytes and SHA-256 but may have different report timestamps. Check column/source-row order, UTF-8, `\n` plus final newline, missing/date/numeric serialization and gzip metadata.
+- Loader rejects corrupt schema/types/period starts and reads no Excel. Metadata loading rejects missing/malformed reports, unsupported versions and filename/fingerprint mismatch; startup parses the verified CSV once, reads the report once and performs no preparation.
+- Simulated replacement/final-validation failures restore an exact, loadable prior pair; first-run failure leaves none ready. An interruption after one replacement produces a read-only error with valid backup pairs and exact commands, chooses none and changes no recovery/final files. Check read-only `--check-recovery`, transactional `--recover`, reported failures and transaction-scoped cleanup.
 
 ### Filtering
 
@@ -323,7 +383,7 @@ All rows have USA and consistent destination names:
 | [2025_1Q,2025_3Q] | [MEX,PHL] | A,B |
 | [2025_1Q] | [PHL] | Empty, original schema |
 
-Reject empty prepared data, missing/blank required values, malformed period, non-USA rows and conflicting destination names at their owning boundary. Name all invalid selections. Preserve B and missing-cost rows, all input columns/order and unchanged input frames/lists. Amount change does not change rows. Reference initial latest quarter is 2025_3Q, MEX, USD 200; a later available quarter dynamically replaces the initial period.
+Also reject empty prepared data, missing/blank required values, malformed periods, non-USA rows and conflicting destination names, naming all invalid selections. Preserve B, missing-cost rows, schema/order and caller inputs. USD 200/500 yield identical filtered rows. Check requested/resolved metadata, validated destination name/code pairs, and this gap case: a globally available period with no quotes for the selected destination remains in chronological `resolved_periods` and renders as a gap/“No data,” without a summary row or zero. The reference initial view is 2025_3Q, MEX, USD 200; a later period replaces it dynamically.
 
 ### Calculation/relevance
 
@@ -342,24 +402,25 @@ Expected corridor cost/count: Mexico 6%/3, India 4%/2. Period rows: India Q1 4%/
 
 Also test:
 
-- Distinct cc1/cc2 costs/fees/margins switch correctly; unsupported amount fails. Independent missing metrics give their own counts; non-USD labels preserved, mixed currencies never pooled.
+- Distinct cc1/cc2 costs/fees/margins/currencies switch together and consistently across all result tables; unsupported or multiple amounts fail. Independent missing metrics give their own counts; non-USD labels preserved, mixed currencies never pooled.
 - Four quotes/two no flags/one missing cost give non-transparent count 2/share 0.5 independent of amount. Two all-non-transparent quotes give total 2/share 1, missing cost/score, observations 0, retained details. Nonempty all-yes gives share 0. Empty filtered input gives six complete empty schemas, matching count 0, no date bounds.
 - Quarter costs [1,1,1] and [9] give pooled median 1, not 5; quarterly medians remain 1/9.
-- Medians 4/6/8 normalize 0/0.5/1; equal 6/6 normalize 0/0; missing stays missing. Share 0.2 remains 0.2, relevance 3→0.6. Include valid-cost corridors lacking relevance in min/max.
-- Components (0.8,0.2,0.6) with default weights give 0.60. Valid adjusted weights use exact formula; negative/nonfinite/non-unit weights fail. Missing component leaves score missing even if its weight is zero, no redistribution.
-- Missing relevance file/entries/blank documentation do not block descriptive results; documented 0 is valid. Duplicate/unknown codes, rating 6/nonnumeric rating and impossible/malformed dates fail. Partial evidence remains visible but unscored.
+- Medians 4/6/8 normalize 0/0.5/1; share 0.2 stays 0.2; relevance 3→0.6; missing raw medians stay missing; valid-cost corridors without relevance remain in min/max. With fewer than two valid medians, test positive and zero cost weights and the exact reason. Equal valid medians 6/6 normalize 0/0 while actual 6% remains displayed; a missing median remains unavailable.
+- Components (0.8,0.2,0.6) with defaults score 0.60. Reject negative/nonfinite weights and totals outside 1e-9. For each component, missing with positive weight prevents a score and gives its reason; missing with zero weight contributes zero, remains visibly missing and permits scoring without redistribution.
+- Missing relevance file/entries/blank documentation do not block descriptive results; documented 0 is valid. Duplicate/unknown codes, rating 6/nonnumeric rating and impossible/malformed dates fail. Partial evidence remains visible, with the relevance component unavailable and the corridor unscored only when relevance has positive weight.
 - Equal scores sort destination name then code; unscored last with all reasons; higher score can outrank higher cost.
 - Internet→Internet-only; Agent→Counter-only; Internet,Agent→Mixed; Call Center→Other/unknown without unexpected-token warning. Internet,Unexpected→Other/unknown with warning; blank/missing access warns. Distinct affected counts, no double-counting; baseline category counts match §6.
-- Same provider's distinct services stay separate. Non-transparent zero margin/reported cost display required unknown status while fee/currency stays visible. Transparent missing metrics stay missing. No caller mutation.
+- Same provider's distinct services stay separate. `provider_details` uses the specified destination-name/code, chronological-period, prepared `firm` and opaque-string `id` stable order; complete ties retain filtered input order. Filter output order remains unchanged, and notebook preview/export do not rerank. Non-transparent zero margin/reported cost display required unknown status while fee/currency stays visible. Transparent missing metrics stay missing. No caller mutation.
+- Shuffled fixtures verify every stable table order: corridor score/tie/unscored order; period destination/chronology order; fixed channel-category order; fee/FX destination and known-currency alphabetical order with unknown last; and provider order. Currency sorting appears only in fee/FX tables and never changes the grain of percentage-only summaries.
 
 ### Presentation/export/integration
 
-Verify initial latest-period/Mexico/USD-200/default-weight view with explicit missing-relevance status when no CSV exists. Show every promised feature, active settings and dates. Two-period fixture cost chart: India Q1 4%, Q2 gap; Mexico Q1 5%, Q2 8%. Transparency points match shares. Single-period charts show markers without directional claims. Consumers do not rerank/regroup shuffled inputs. Missing required columns raise errors naming each one.
+Checks:
 
-Notebook/report match ranking, numbers, counts, units, documentation, warnings and service rows; missing values never become zero. Empty/error reruns clear old output; no stale exports. Consumers work independently without invoking preparation/filter/calculation and leave bundle unchanged. Same-selection/same-second exports have distinct paths. HTML exists, escapes researcher text, embeds nonempty charts where data permits, has no external images, opens offline and prints readably. Empty result exports current settings/no-matching message.
+- Initial latest/Mexico/USD-200/default-weight view shows missing relevance when `inputs/community_relevance.csv` is absent, insufficient cost comparison, and available raw cost/trend/transparency evidence, plus all active settings/dates.
+- Two-period chart: India Q1 4%, Q2 gap; Mexico Q1 5%, Q2 8%; transparency points equal shares. Globally available but destination-empty periods remain gaps/“No data.” Single points imply no direction; empty results retain resolved country name/code.
+- Consumers neither recompute nor reorder; missing required columns are all named. Notebook/export match ranking, values, units, documentation, preparation metadata and separately labeled runtime warnings; missing never becomes zero.
+- For `Y>100`, default preview is the first 100 rows and says `Showing 100 of Y service rows`; custom valid sizes change only the slice/`X`. For `Y<100` and `Y=0`, show the actual count. Invalid sizes fail. Export contains exactly all `Y = metadata.matching_row_count` rows in the same order; previewing changes no result or other output.
+- Error reruns clear stale results/exports; consumers leave the bundle unchanged. Same-second exports are distinct. HTML escapes researcher text, embeds permitted charts with no external images, works offline/print, and exports useful current settings when empty.
 
-After loading the prepared U.S. data once, benchmark two selections: the default latest-quarter/Mexico/USD-200 view and all available periods/destinations at USD 200. For each selection, run filter, calculation and notebook rendering five times without rereading files. Target a median end-to-end response time of at most 2 seconds for each selection on the test laptop. Record the laptop specifications, prepared DataFrame memory use, each timing and the median. Report startup loading and explicit HTML export times separately; the 2-second target excludes both. If the target is missed, report the bottleneck and improve the responsible piece while preserving the calculation contracts and complete evidence. Retain full exported evidence rather than silently truncating for speed. Pass numerical/data checks before styling polish.
-
-## 9. Completion review
-
-Review all eight equally weighted criteria before handoff: (1) specific user/decision/concrete uses; (2) every use has inputs/views; (3) principles/pipeline precede precise rules; (4) compact definitions without conflicting duplicates; (5) independent pieces/contracts; (6) laptop-sized single-load workflow/cloud plan; (7) verified fields and explicit quality/edge checks; (8) standalone access/setup/defaults/build order/numerical acceptance tests. Walk through with only this prompt and dataset repository; report remaining guesses. Specification review alone does not validate the future implementation.
+After loading the prepared U.S. data once, benchmark two selections: the default latest-quarter/Mexico/USD-200 view and all available periods/destinations at USD 200. For each selection, run filter, calculation and notebook rendering five times without rereading files, with the default 100-row provider preview enabled. Target a median end-to-end response time of at most 2 seconds for each selection on the test laptop; do not assume the preview alone guarantees the target. Record the laptop specifications, prepared DataFrame memory use, each timing and the median. Report startup loading and explicit full-row HTML export times separately; the 2-second target excludes both. If the target is missed, report the bottleneck and improve the responsible piece while preserving the calculation contracts and complete evidence. Retain full exported evidence rather than silently truncating for speed. Pass numerical/data checks before styling polish.
