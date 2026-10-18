@@ -153,7 +153,7 @@ def filter_quotes(quotes: pd.DataFrame, periods: list[str],
 
 Filter requires only source_code, period, destination_code; validate those fields and nonempty prepared input. Validate all requested values against full input before filtering and name every invalid selection. OR within each dimension, AND dimensions. Valid destinations absent in a chosen period yield a valid empty result.
 
-Return `quotes.loc[mask].copy()` with a row-aligned mask, original column/row order and every input column. Never mutate inputs, read files, aggregate, rank, deduplicate, fill or filter by amount/weights/relevance. Preserve all missing costs/transparency states. Selection/contract errors clear prior results and prevent stale export; preparation errors direct regeneration, and selection errors show valid options.
+Return `quotes.loc[mask].copy()` with a row-aligned mask, original column/row order and every input column. Never mutate inputs, read files, aggregate, rank, deduplicate, fill or filter by amount/weights/relevance. Preserve all missing costs/transparency states. Selection/contract errors clear prior displays and prevent stale export without replacing the stored last-successful result bundle or its input snapshot; preparation errors direct regeneration, and selection errors show valid options.
 
 ### Separate relevance CSV
 
@@ -204,6 +204,14 @@ class ResolvedDestination:
     destination_name: str
 
 @dataclass(frozen=True)
+class RelevanceInputSnapshot:
+    destination_code: str
+    relevance_rating: float | None
+    relevance_rationale: str | None
+    relevance_evidence_source: str | None
+    relevance_evidence_date: pd.Timestamp | None
+
+@dataclass(frozen=True)
 class AnalysisMetadata:
     requested_periods: tuple[str, ...]  # empty means the user requested all available
     requested_destination_codes: tuple[str, ...]  # same empty-list meaning
@@ -211,6 +219,7 @@ class AnalysisMetadata:
     resolved_destinations: tuple[ResolvedDestination, ...]  # explicit and available
     transfer_amount_usd: int
     weights: ScoringWeights
+    validated_relevance_snapshot: tuple[RelevanceInputSnapshot, ...]
     matching_row_count: int
     collection_date_min: pd.Timestamp | None
     collection_date_max: pd.Timestamp | None
@@ -244,7 +253,7 @@ def present_results(
 def export_briefing(results: AnalysisResults, output_dir: str = "exports") -> Path: ...
 ```
 
-Calculation accepts prepared names, internally mapping source_name→sending_country, destination_name→receiving_country and period→reporting_period. Group by country codes, retaining validated labels. Notebook passes the requested and resolved selections, current amount/weights, separate validated relevance and the once-loaded `PreparationMetadata`; calculation validates that filtered rows use only resolved values and agree with every matching resolved code/name entry, then snapshots all inputs in metadata without rereading or rebuilding preparation information. Resolved values may legitimately have no matching filtered row. Keep `PreparationMetadata.preparation_warnings` separate from `runtime_validation_warnings`; append current access-point and analysis warnings only to the latter. Never use hidden DataFrame attributes.
+Calculation accepts prepared names, internally mapping source_name→sending_country, destination_name→receiving_country and period→reporting_period. Group by country codes, retaining validated labels. Notebook passes the requested and resolved selections, current amount/weights, separate validated relevance and the once-loaded `PreparationMetadata`; calculation validates that filtered rows use only resolved values and agree with every matching resolved code/name entry. It records immutable value copies of requested selections, amount, weights and the validated relevance rows in metadata; canonicalize the relevance snapshot by destination code, represent every missing relevance field as `None`, and never retain caller lists or the relevance DataFrame. Together with `metadata.preparation.prepared_filename` and `prepared_sha256`, these fields are the independent successful-analysis input snapshot and cannot change if mutable notebook inputs are later edited. Do not reread or rebuild preparation information. Resolved values may legitimately have no matching filtered row. Keep `PreparationMetadata.preparation_warnings` separate from `runtime_validation_warnings`; append current access-point and analysis warnings only to the latter. Never use hidden DataFrame attributes.
 
 Schema abbreviations expand to exact columns:
 
@@ -345,6 +354,8 @@ Render from the same current AnalysisResults, without recomputing, regrouping, r
 
 Use pandas/IPython display and static Matplotlib. Leave minor styling/wording to the builder. Validate `provider_preview_rows` as a positive integer; `X` is `min(provider_preview_rows, Y)`. Clear prior displays and close/replace figures on reruns and errors. Metadata matching_row_count=0 displays `No matching quotes` with current settings/warnings; omit empty tables/charts and report `Showing 0 of 0 service rows` only where the provider section is rendered. Quotes without eligible costs retain transparency/provider evidence and an explicit cost-unavailable explanation. Never leave stale results exportable.
 
+Notebook orchestration stores an `AnalysisResults` bundle only after a successful run and retains that last-successful bundle and its immutable input snapshot independently of the mutable input variables. Before export, orchestration validates and canonicalizes the current executed requested period/destination values, transfer amount, weights and relevance inputs under the same contracts used for analysis, represents every missing relevance field as `None`, and combines them with the once-loaded prepared filename/SHA-256. Compare only these defined input-snapshot fields with their counterparts in `last_successful_results.metadata`, not `AnalysisMetadata` as a whole. Block export before calling `export_briefing` and create no file if no successful bundle exists, current inputs are invalid or the snapshots differ; explain that the researcher must rerun the analysis successfully. If they match, call `export_briefing` with only the stored result bundle. This guard reads the current in-memory executed values but no files: it does not reread the workbook or relevance input, repeat preparation or recalculate results. Calculation and export never read notebook globals. Editing an input cell changes nothing until that cell is executed, so state this beside the export control. Exclude presentation-only settings such as `provider_preview_rows` from the snapshot; changing them does not invalidate otherwise matching results.
+
 Export validates schemas (a `ValueError` names every missing column), writes UTF-8 standalone HTML only on explicit request, creates `exports/` if needed and returns its actual Path/link. Use unique collision-safe names such as `remitright_briefing_20261016_183400.html`; never overwrite. Escape dynamic text, embed and close base64 PNG figures, and use no external assets, network requests, automatic sharing or added reporting engine. Match notebook settings, evidence, charts, warnings and order, with the complete provider table required above. Empty/partial results remain useful and the HTML opens offline and prints readably to PDF.
 
 ## 8. Build order and acceptance checks
@@ -421,6 +432,12 @@ Checks:
 - Two-period chart: India Q1 4%, Q2 gap; Mexico Q1 5%, Q2 8%; transparency points equal shares. Globally available but destination-empty periods remain gaps/“No data.” Single points imply no direction; empty results retain resolved country name/code.
 - Consumers neither recompute nor reorder; missing required columns are all named. Notebook/export match ranking, values, units, documentation, preparation metadata and separately labeled runtime warnings; missing never becomes zero.
 - For `Y>100`, default preview is the first 100 rows and says `Showing 100 of Y service rows`; custom valid sizes change only the slice/`X`. For `Y<100` and `Y=0`, show the actual count. Invalid sizes fail. Export contains exactly all `Y = metadata.matching_row_count` rows in the same order; previewing changes no result or other output.
-- Error reruns clear stale results/exports; consumers leave the bundle unchanged. Same-second exports are distinct. HTML escapes researcher text, embeds permitted charts with no external images, works offline/print, and exports useful current settings when empty.
+- Before any successful analysis, export is blocked and creates no file.
+- After a successful USD-200 run, execute an input-cell change to USD 500 and run only export: it is blocked, creates no file and instructs the researcher to rerun analysis.
+- After successfully rerunning analysis at USD 500, export succeeds and both its settings and results use USD 500.
+- Executed changes to weights or validated relevance inputs likewise block export until a successful rerun; mutating their notebook objects does not alter the stored snapshot. Invalid current inputs also block export without a file.
+- After a successful analysis with missing or partial relevance, unchanged inputs still permit export because both snapshots represent the same missing fields as `None`.
+- Changing only `provider_preview_rows` does not block export or alter the complete exported provider table.
+- Error reruns clear stale displays/exports without replacing the last-successful bundle or snapshot; consumers leave the bundle unchanged. Same-second exports are distinct. HTML escapes researcher text, embeds permitted charts with no external images, works offline/print, and exports useful current settings when empty.
 
 After loading the prepared U.S. data once, benchmark two selections: the default latest-quarter/Mexico/USD-200 view and all available periods/destinations at USD 200. For each selection, run filter, calculation and notebook rendering five times without rereading files, with the default 100-row provider preview enabled. Target a median end-to-end response time of at most 2 seconds for each selection on the test laptop; do not assume the preview alone guarantees the target. Record the laptop specifications, prepared DataFrame memory use, each timing and the median. Report startup loading and explicit full-row HTML export times separately; the 2-second target excludes both. If the target is missed, report the bottleneck and improve the responsible piece while preserving the calculation contracts and complete evidence. Retain full exported evidence rather than silently truncating for speed. Pass numerical/data checks before styling polish.
