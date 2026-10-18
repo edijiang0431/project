@@ -358,7 +358,7 @@ Verify initial latest-period/Mexico/USD-200/default-weight view with explicit mi
 
 Notebook/report match ranking, numbers, counts, units, documentation, warnings and service rows; missing values never become zero. Empty/error reruns clear old output; no stale exports. Consumers work independently without invoking preparation/filter/calculation and leave bundle unchanged. Same-selection/same-second exports have distinct paths. HTML exists, escapes researcher text, embeds nonempty charts where data permits, has no external images, opens offline and prints readably. Empty result exports current settings/no-matching message.
 
-Measure actual prepared memory use and warm filter/calculate/render latency on the laptop; report measurements and investigate hangs/repeated I/O. Retain full exported evidence rather than silently truncating for speed. Pass numerical/data checks before styling polish.
+After loading the prepared U.S. data once, benchmark two selections: the default latest-quarter/Mexico/USD-200 view and all available periods/destinations at USD 200. For each selection, run filter, calculation and notebook rendering five times without rereading files. Target a median end-to-end response time of at most 2 seconds for each selection on the test laptop. Record the laptop specifications, prepared DataFrame memory use, each timing and the median. Report startup loading and explicit HTML export times separately; the 2-second target excludes both. If the target is missed, report the bottleneck and improve the responsible piece while preserving the calculation contracts and complete evidence. Retain full exported evidence rather than silently truncating for speed. Pass numerical/data checks before styling polish.
 
 ## 9. Completion review
 
