@@ -1,0 +1,43 @@
+{
+  "report_schema_version": 1,
+  "source_filename": "rpw_dataset_2011_2025_q3.xlsx",
+  "source_sha256": "f1d7265b1856d61812c158d3d03fae686dbff58735deabe016a6bfe23482d2a8",
+  "prepared_filename": "rpw_usa_clean.csv.gz",
+  "prepared_sha256": "fe8d6f2921450494ca27ff9503e50e1d24f53934af1bc4bddb02566bac205910",
+  "prepared_at_utc": "2026-10-19T23:09:15.874126+00:00",
+  "validation_summary": [
+    "modern_rows=204469",
+    "modern_distinct_ids=204469",
+    "usa_rows=29542",
+    "periods=37",
+    "corridors=42",
+    "providers=88",
+    "missing_cc1_total_cost=0",
+    "transparent=29520",
+    "non_transparent=22",
+    "mex_latest_reference=46",
+    "periods=2016_2Q,2016_3Q,2016_4Q,2017_1Q,2017_2Q,2017_3Q,2017_4Q,2018_1Q,2018_2Q,2018_3Q,2018_4Q,2019_1Q,2019_2Q,2019_3Q,2019_4Q,2020_1Q,2020_2Q,2020_3Q,2020_4Q,2021_1Q,2021_2Q,2021_3Q,2021_4Q,2022_1Q,2022_2Q,2022_3Q,2022_4Q,2023_1Q,2023_2Q,2023_3Q,2023_4Q,2024_1Q,2024_2Q,2024_3Q,2024_4Q,2025_1Q,2025_3Q",
+    "country/currency/schema/unique ID checks passed; all modern IDs audited before USA selection",
+    "cc1_lcu_code currencies=['USD']",
+    "cc2_lcu_code currencies=['USD']",
+    "cc1_total_cost_pct: min=-9.85, max=100.33, negative_count=126",
+    "cc2_total_cost_pct: min=-10.47, max=34.0, negative_count=191"
+  ],
+  "change_summary": [
+    "modern_rows: reference=204469, current=204469, delta=0",
+    "modern_distinct_ids: reference=204469, current=204469, delta=0",
+    "usa_rows: reference=29542, current=29542, delta=0",
+    "periods: reference=37, current=37, delta=0",
+    "corridors: reference=42, current=42, delta=0",
+    "providers: reference=88, current=88, delta=0",
+    "missing_cc1_total_cost: reference=0, current=0, delta=0",
+    "transparent: reference=29520, current=29520, delta=0",
+    "non_transparent: reference=22, current=22, delta=0",
+    "mex_latest_reference: reference=46, current=46, delta=0",
+    "Source SHA-256 matches reference: False; reference=02e7ec01e461d027e4c805413839e3378f58366d2660cfeadfff140db288cf82; current=f1d7265b1856d61812c158d3d03fae686dbff58735deabe016a6bfe23482d2a8",
+    "Exact reference membership comparison unavailable; baseline membership not yet preserved."
+  ],
+  "preparation_warnings": [
+    "Historical sampled quotes; not guaranteed live prices."
+  ]
+}

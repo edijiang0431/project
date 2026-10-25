@@ -1,0 +1,9 @@
+[project]
+name = "remitright-la"
+version = "0.1.0"
+description = "Reproducible CHIRLA remittance outreach briefing notebook"
+requires-python = ">=3.11"
+dependencies = ["pandas", "openpyxl", "matplotlib", "ipython", "jupyterlab", "ipykernel", "pytest", "nbclient", "nbformat"]
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
