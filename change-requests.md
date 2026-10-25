@@ -59,3 +59,21 @@ A filled request (from the class lottery app):
 - **Change:** Calculate `(Counter-only median cost % - Internet-only median cost %) / 100 * selected transfer amount` for each selected corridor and display the dollar difference, its direction, the percentage-point difference and both eligible quote counts in the notebook and export. Show unavailable when either median is missing and describe the result as a historical group comparison, not guaranteed individual savings. Verify $1.18 for this selection and handle equal or reversed medians.
 - **Priority:** medium
 - **Status:** open
+
+### CR-03: Add a cost-and-transparency comparison mode
+
+- **From:** Nicharee Ratanajaratkul (Prae), 2026-10-25
+- **Part:** Part 1 — Priority ranking
+- **Evidence:** With MEX and PHL selected for 2025 Q3 and USD 200 using default weights, median costs were 4.485% and 3.96% and both non-transparent shares were zero, but composite scores remained unavailable because documented community relevance was missing.
+- **Change:** Add an explicitly selectable cost-and-transparency comparison mode with weights of two-thirds normalized cost and one-third non-transparent share, showing measures, contributions, and weights. Keep community evidence separate and missing values unavailable, retain the community-informed mode, and explain that this score does not assess community relevance or automatically select a campaign target.
+- **Priority:** high
+- **Status:** open
+
+### CR-04: Use a shared reference for cost normalization
+
+- **From:** Nicharee Ratanajaratkul (Prae), 2026-10-25
+- **Part:** Parts 1–2 — Priority ranking and Mexico’s normalized cost
+- **Evidence:** For 2025 Q3 and USD 200, Mexico's median remained 4.485% from 46 eligible quotes, but its normalized score changed from 1 for MEX–PHL to 0.314598 across 42 valid-cost corridors. Independent checks matched both displayed scores at six decimal places. Bounds changed from 3.96%–4.485% to 2.47%–8.875%. This follows the current formula rather than showing a calculation error.
+- **Change:** Calculate normalization bounds from all available USA-origin corridors with valid eligible medians for the selected periods and transfer amount before filtering displayed countries. Show reference scope, bounds, data version, and actual median costs; explain when scores can change and assess the effect on composite rankings before adoption.
+- **Priority:** medium
+- **Status:** open
