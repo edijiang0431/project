@@ -95,3 +95,21 @@ A filled request (from the class lottery app):
 - **Change:** In the notebook and offline export, add a compact coverage summary next to the cost chart for each corridor and selected quarter: eligible cost observations / total quotes, coverage percentage, non-transparent exclusions, and transparent quotes with missing selected-amount costs. For this case show 45/46 (97.8%), zero non-transparent exclusions and one missing transparent cost. Calculate counts for the selected transfer amount, keep missing costs unavailable, and show unavailable coverage rather than dividing by zero when there are no quotes. Keep missing-survey gaps distinct from observed quarters with incomplete costs.
 - **Priority:** medium
 - **Status:** open
+
+### CR-07: Add a key-findings and evidence-readiness summary to exported briefings
+
+- **From:** edijiang0431, 2026-10-25
+- **Part:** Briefing export — Priority Ranking and community-relevance evidence
+- **Evidence:** I personally inspected one exported HTML briefing in my browser. The provider evidence was easy to navigate and displayed 46 of 46 service rows, but the Priority Ranking had many technical columns requiring horizontal scrolling, and <NA>/NaT labels were unclear. Codex's automated checks of the Mexico 2025 Q3/USD 200 and 2025 Q1/USD 500 briefings confirmed matching settings and complete provider evidence; both ranking tables contained missing community-relevance documentation. Export passed the tested checks and already explained why scores were unavailable. The remaining issue is helping CHIRLA staff quickly understand the evidence and their next steps.
+- **Change:** Add a concise summary before the detailed ranking table showing key price findings, corridor-specific missing community-relevance inputs, and concrete evidence-gathering steps in plain language. Retain the full technical tables and existing unscored reasons, distinguish descriptive price evidence from incomplete community-informed prioritization, and do not infer community evidence or change scoring.
+- **Priority:** medium
+- **Status:** open
+
+### CR-08: Add a visible-fee distribution summary alongside the median
+
+- **From:** edijiang0431, 2026-10-25
+- **Part:** Visible transfer-fee summary in the notebook and exported briefing
+- **Evidence:** For USA → Mexico, 2025 Q3, USD 200, the app displayed a median visible fee of USD 5.695 from 46 eligible quotes. I personally ran the independent raw-workbook script and inspected its JSON output: 46 eligible fees, middle values USD 5.47 and USD 5.92, and median USD 5.695, giving a difference of USD 0.000 from the app. The recorded rows range from USD 0 to USD 35 and include two zero-fee quotes. The calculation passed this check, but the fee-summary table shows only the median and eligible count; staff must inspect individual provider rows to understand the variation.
+- **Change:** Alongside the median and eligible count, show minimum, maximum, zero-fee quote count, and a compact distribution plot in both the notebook and briefing, using the same selected corridor, periods, transfer basket, currency, and transparent nonmissing-fee eligibility rules. Preserve genuine zeros, keep missing fees unavailable, and explain that zero visible fee does not mean zero total remittance cost and that service quotes are not customer weights.
+- **Priority:** medium
+- **Status:** open
