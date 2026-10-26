@@ -113,3 +113,34 @@ A filled request (from the class lottery app):
 - **Change:** Alongside the median and eligible count, show minimum, maximum, zero-fee quote count, and a compact distribution plot in both the notebook and briefing, using the same selected corridor, periods, transfer basket, currency, and transparent nonmissing-fee eligibility rules. Preserve genuine zeros, keep missing fees unavailable, and explain that zero visible fee does not mean zero total remittance cost and that service quotes are not customer weights.
 - **Priority:** medium
 - **Status:** open
+
+### CR-09: Add filtering and sorting to service-level provider evidence
+
+- **From:** Jiayi Liu, 2026-10-25
+- **Part:** Part 1 — Service-level provider evidence
+- **Evidence:** For USA to Mexico, 2025 Q3 and USD 200, the table showed 46 service rows. I had
+  to scan its fixed provider/service order to find campaign examples because it had no controls
+  to filter or sort by total cost, transfer fee or exchange-rate margin. Multiple rows for one
+  provider can represent different services and should remain separate.
+- **Change:** Add optional service-table filters and sorting by total cost, transfer fee and
+  exchange-rate margin, with ascending/descending order. Keep each row's service ID, channel,
+  collection date and transparency status visible so sorting does not imply an automatic
+  provider recommendation.
+- **Priority:** medium
+- **Status:** open
+
+### CR-10: Show a dollar cost breakdown for each service quote
+
+- **From:** Jiayi Liu, 2026-10-25
+- **Part:** Parts 1–2 — Service-level provider evidence and one MoneyGram total cost
+- **Evidence:** For transparent service ID `1212255489`, USD 200, the table showed a USD 2.99
+  fee, a 1.10% exchange-rate margin and a 2.60% total cost, but it did not show the margin or
+  total cost in dollars. My independent component calculation gave 2.595%, which rounds to the
+  displayed 2.60%. CR-02 concerns a channel-median difference; this finding concerns each
+  individual service's components.
+- **Change:** For each transparent service, show the transfer fee, the FX-margin dollar amount
+  and the component-derived total dollar cost side by side, using full precision before display
+  rounding. Keep unknown or missing components unknown, and retain the published total-cost
+  percentage so small source-rounding differences remain visible rather than silently replaced.
+- **Priority:** medium
+- **Status:** open
