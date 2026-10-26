@@ -77,3 +77,21 @@ A filled request (from the class lottery app):
 - **Change:** Calculate normalization bounds from all available USA-origin corridors with valid eligible medians for the selected periods and transfer amount before filtering displayed countries. Show reference scope, bounds, data version, and actual median costs; explain when scores can change and assess the effect on composite rankings before adoption.
 - **Priority:** medium
 - **Status:** open
+
+### CR-05: Add a latest-four-calendar-quarters shortcut for trend analysis
+
+- **From:** Yuqian Chen (YuqianC0724), 2026-10-25
+- **Part:** Part 1 — Quarter-specific evidence and notebook period selection
+- **Evidence:** The default selection is MEX, 2025 Q3, USD 200. Running the existing analysis and rendering functions produces one cost point at 4.485% and one non-transparent-share point at 0; this cannot show whether a problem persists. Manually selecting multiple quarters produces a usable comparison. The current renderer already preserves 2025 Q2 as “No survey data” and breaks the line, and distinguishes an available but unselected quarter as “Not selected.” The missing convenience is selecting a recent calendar window without constructing the period list manually.
+- **Change:** Add an executable “Latest four calendar quarters” preset anchored to the latest available survey quarter. Apply it to the shared analysis period selection and rerun analysis so charts and summary tables remain consistent; visibly state the requested calendar window and available survey quarters used. For this dataset, the window must be 2024 Q4–2025 Q3, using Q4, Q1 and Q3 observations while retaining the Q2 gap, with no backfilling from older quarters. Preserve manual selection and show a clear message if the window contains fewer than two usable time points.
+- **Priority:** medium
+- **Status:** open
+
+### CR-06: Show usable-cost coverage alongside quarterly trend points
+
+- **From:** Yuqian Chen (YuqianC0724), 2026-10-25
+- **Part:** Part 2 — Quarter-specific median-cost evidence in notebook and HTML briefing
+- **Evidence:** For USA → MEX, 2025 Q1, USD 500, a CSV loop with decimal sorting independently gives a median of 2.77%, matching the app. There are 46 matching quotes and zero non-transparent quotes, but one transparent quote has a missing USD 500 cost, leaving only 45 eligible costs. The chart shows cost and non-transparent share; counts are available in the table below, but usable-cost coverage and the missing-cost distinction are not presented alongside the chart. A zero non-transparent share therefore does not establish complete cost coverage. This is an interpretation improvement, not a demonstrated median-calculation error.
+- **Change:** In the notebook and offline export, add a compact coverage summary next to the cost chart for each corridor and selected quarter: eligible cost observations / total quotes, coverage percentage, non-transparent exclusions, and transparent quotes with missing selected-amount costs. For this case show 45/46 (97.8%), zero non-transparent exclusions and one missing transparent cost. Calculate counts for the selected transfer amount, keep missing costs unavailable, and show unavailable coverage rather than dividing by zero when there are no quotes. Keep missing-survey gaps distinct from observed quarters with incomplete costs.
+- **Priority:** medium
+- **Status:** open
