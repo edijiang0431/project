@@ -8,9 +8,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from .contracts import *
+from .dashboard_presentation import (COMMUNITY_MODE, COST_MODE, POOLING, DIRECTION, comparison_table, current_warnings, score_contributions, small_sample_messages, cost_axis_range)
 
-EXPLANATION = '''Scores support staff judgment; staff decide priorities. Normalization is relative to the selected comparison set, so changing corridors can change scores. Relative cost unavailable: at least two selected corridors with valid median costs are required. Equal valid medians normalize to zero, meaning no relative difference, not zero actual cost. Positive-weight components are required; a missing zero-weight component contributes zero without weight redistribution and remains visibly unavailable. Relevance is documented researcher judgment, never inferred population or customer usage.'''
-LIMITATIONS = '''Historical sampled quotes are not guaranteed live prices. Survey composition changes. Quote counts are not customers or market shares. Pooled-quarter medians use every eligible quote, so quarters with more eligible quotes contribute more observations; this is not customer weighting. No persistence score or causal channel claim is made. Selection-relative normalization and subjective relevance affect scores. Check current prices and community relevance before publishing. Median fees and FX margins have different units/observation sets and are not additive. One chart point implies no direction. Missing costs remain unavailable; non-transparent costs/margins are unknown, even when reported as zero.'''
+EXPLANATION = '''Scores support staff judgment; staff decide priorities. Normalization is relative to the selected comparison set, so changing corridors can change scores. Relative cost requires at least two selected corridors with valid median costs. Equal valid medians normalize to zero, meaning no relative difference, not zero actual cost. Positive-weight components are required; a missing zero-weight component contributes zero without weight redistribution and remains visibly unavailable. Relevance is documented researcher judgment, never inferred population or customer usage.'''
+LIMITATIONS = '''Historical sampled quotes are not guaranteed live prices. Survey composition changes. Quote counts are not customers or market shares. Pooled-quarter medians use every eligible quote, so quarters with more eligible quotes contribute more observations; this is not customer weighting. No persistence score or causal channel claim is made. Selection-relative normalization and subjective relevance affect scores. Check current prices and community relevance before publishing. Median fees and FX margins have different units and observation sets. Separately calculated medians cannot simply be added to reproduce median total cost, even after unit conversion. One chart point implies no direction. Missing costs remain unavailable; non-transparent costs/margins are unknown, even when reported as zero.'''
 STYLE = '''body{font:15px/1.5 system-ui,sans-serif;color:#182d36;background:#f4f5f0;margin:0}main{max-width:1380px;margin:auto;padding:32px}h1{font-size:38px;margin-bottom:0;color:#174e49}h2{margin-top:34px;border-top:2px solid #cadbd5;padding-top:18px}h3{color:#174e49}p{max-width:1050px}.eyebrow{letter-spacing:.12em;text-transform:uppercase;color:#63756e;font-size:12px}.notice{border-left:4px solid #b07134;background:#fff8eb;padding:14px}table{border-collapse:collapse;width:100%;font-size:12px;background:white}th,td{border-bottom:1px solid #dde3df;padding:8px;text-align:left;vertical-align:top}th{background:#e1ece7;position:sticky;top:0}td{max-width:350px;overflow-wrap:anywhere}.table-wrap{overflow:auto;max-height:650px}img{width:100%;max-width:1200px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#e7ece6;padding:16px;font-size:12px}a{color:#17665d}@page{size:landscape;margin:10mm}@media print{body{background:white;font-size:10px}main{padding:0}h1{font-size:26px}.table-wrap{overflow:visible;max-height:none}th{position:static}table{font-size:7px;table-layout:fixed}th,td{padding:4px;overflow-wrap:anywhere;word-break:normal}img{max-height:470px;object-fit:contain}h2,h3{break-after:avoid}tr{break-inside:avoid}pre{font-size:8px}}'''
 
 def quarter_label(p):
@@ -45,12 +46,23 @@ def make_figures(results):
             ax.plot(range(len(periods)),y,marker='o',markersize=3,linewidth=1.3,label=f'{d.destination_name} ({d.destination_code})')
     axes[0].set_ylabel('Median total cost (%)')
     axes[1].set_ylabel('Non-transparent quote share (0–1)')
+    from matplotlib.ticker import PercentFormatter
+    axes[1].yaxis.set_major_formatter(PercentFormatter(xmax=1))
+    axes[1].set_ylabel('Non-transparent quote share (%)')
     axes[1].set_ylim(-.03,1.03)
+    bounds = cost_axis_range(results.period_summary.median_total_cost)
+    if bounds is not None:
+        axes[0].set_ylim(*bounds)
     for ax in axes:
         ax.grid(alpha=.2)
         ax.spines[['top','right']].set_visible(False)
     axes[0].set_title('Selected survey quarters • gaps are not zero • one point implies no direction',loc='left')
-    axes[1].set_xticks(range(len(periods)),labels,rotation=65,ha='right',fontsize=7)
+    names = ', '.join(d.destination_name for d in m.resolved_destinations) if len(m.resolved_destinations) <= 3 else f'{len(m.resolved_destinations)} receiving countries'
+    axes[0].set_title(f'Quarterly median total cost (%) | {names} | USD {m.transfer_amount_usd}', loc='left', fontsize=10)
+    axes[1].set_title('Non-transparent quote share (%) | missing periods remain gaps', loc='left', fontsize=10)
+    step = max(1, int(np.ceil(len(periods) / 10)))
+    ticks = sorted(set(range(0, len(periods), step)) | {len(periods)-1})
+    axes[1].set_xticks(ticks,[labels[i] for i in ticks],rotation=45,ha='right',fontsize=8)
     handles,labs=axes[0].get_legend_handles_labels()
     fig.legend(handles,labs,loc='outside right upper',fontsize=7,ncol=1 if len(labs)<15 else 2)
     fig.set_facecolor('#f4f5f0')
@@ -63,7 +75,7 @@ def figure_html(fig):
     finally:
         plt.close(fig)
 
-def formatted_table(df, provider=False):
+def formatted_table(df, provider=False, exact=False):
     out=df.copy(deep=True)
     if provider:
         for c in ['exchange_rate_margin','total_cost_pct']:
@@ -75,14 +87,19 @@ def formatted_table(df, provider=False):
         out['access_point']=out.access_point.fillna('Unknown—missing value')
     if 'fee_currency' in out:
         out['fee_currency']=out.fee_currency.fillna('Unknown currency')
+    for c in out:
+        if pd.api.types.is_datetime64_any_dtype(out[c]):
+            out[c] = out[c].dt.strftime('%Y-%m-%d')
     # pandas escape=True protects all researcher/provider/source text.
-    return '<div class="table-wrap">'+out.to_html(index=False,escape=True,na_rep='Unavailable',float_format=lambda v:f'{v:.6g}')+'</div>'
+    return '<div class="table-wrap">'+out.to_html(index=False,escape=True,na_rep='Unavailable',float_format=lambda v:format(v, '.17g' if exact else '.6g'))+'</div>'
 
 def header_html(results,export_time=None):
     m=results.metadata
     requested_periods=', '.join(quarter_label(p) for p in m.requested_periods) or 'All available'
     requested_destinations=', '.join(m.requested_destination_codes) or 'All available'
     settings=[('Requested survey quarters',requested_periods),('Resolved survey quarters',', '.join(quarter_label(p) for p in m.resolved_periods)),('Requested destinations',requested_destinations),('Resolved destinations',', '.join(f'{d.destination_name} ({d.destination_code})' for d in m.resolved_destinations)),('Transfer amount',f'USD {m.transfer_amount_usd}'),('Weights',f'Cost {m.weights.cost:g} · Non-transparent share {m.weights.transparency:g} · Community relevance {m.weights.relevance:g}'),('Matching service rows',str(m.matching_row_count)),('Actual collection dates',f'{m.collection_date_min} to {m.collection_date_max}')]
+    settings.insert(0, ('Scoring mode', m.scoring_mode))
+    settings.append(('Exact applicable weights', f'Cost {m.weights.cost!r}; disclosure {m.weights.transparency!r}' + (f'; community {m.weights.relevance!r}' if m.scoring_mode == COMMUNITY_MODE else '; community excluded (weight 0)')))
     if export_time is not None: settings.append(('Export timestamp (UTC)',str(export_time)))
     table='<table>'+''.join('<tr><th>'+escape(k)+'</th><td>'+escape(v)+'</td></tr>' for k,v in settings)+'</table>'
     p=m.preparation
@@ -96,13 +113,20 @@ def body_sections(results,preview=None):
     validate_results(results)
     m=results.metadata
     sections=[header_html(results)]
+    sections.append('<h2>Executed scoring mode</h2><p>'+escape(m.scoring_mode)+'</p><p>'+escape(DIRECTION)+'</p><p>'+escape(POOLING)+'</p>')
+    if m.scoring_mode == COST_MODE:
+        sections.append('<p>Community relevance is excluded from this score. Any supplied community evidence remains descriptive only. Relative cost still uses the selected comparison set.</p>')
+    evidence = pd.DataFrame([vars(r) for r in m.validated_relevance_snapshot])
+    sections.append('<details><summary>Applied community evidence snapshot</summary>' + (formatted_table(evidence, exact=True) if not evidence.empty else '<p>No community evidence was applied. Missing evidence is not inferred.</p>') + '</details>')
+    sections.extend('<p class="notice">'+escape(message)+'</p>' for message in current_warnings(results))
     if m.matching_row_count==0:
         return sections+['<h2>No matching quotes</h2><p>Showing 0 of 0 service rows</p><h2>Limitations & attribution</h2><p>'+escape(LIMITATIONS)+'</p><p>Remittance Prices Worldwide, World Bank Group · CC BY 4.0. Adaptation: cleaned USA quotes and derived summaries.</p>']
-    sections += ['<h2>Priority ranking</h2><p>'+escape(EXPLANATION)+'</p>',formatted_table(results.corridor_summary),'<h2>Fees & exchange-rate margins</h2><p>Fees: actual currency units. FX margins: percent, grouped separately by currency. Each metric has its own eligible observation count.</p>',formatted_table(results.fee_summary),formatted_table(results.fx_margin_summary),'<h2>Quarter-specific evidence</h2><p>Selected quarters with no usable value show gaps (No data). Rendering positions do not add analytical rows.</p>']
+    sections += ['<h2>Corridor comparison</h2><p>'+escape(EXPLANATION)+'</p>',formatted_table(comparison_table(results)), '<details><summary>Exact score components and calculated fields</summary>'+formatted_table(score_contributions(results), exact=True)+formatted_table(results.corridor_summary, exact=True)+'</details>','<h2>Fees & exchange-rate margins</h2><p>Fees: actual currency units. FX margins: percent, grouped separately by currency. Each metric has its own eligible observation count.</p>',formatted_table(results.fee_summary),formatted_table(results.fx_margin_summary),'<h2>Quarter-specific evidence</h2><p>Selected quarters with no usable value show gaps (No data). Rendering positions do not add analytical rows.</p>']
     sections += [figure_html(f) for f in make_figures(results)]
+    sections.extend('<p class="notice">'+escape(message)+'</p>' for message in small_sample_messages(results))
     observed={(r.destination_code,r.channel_category) for r in results.channel_summary.itertuples()}
     absent=''.join('<li>'+escape(f'{d.destination_name} ({d.destination_code}): {category} — no observations')+'</li>' for d in m.resolved_destinations for category in CHANNELS if (d.destination_code,category) not in observed)
-    sections += [formatted_table(results.period_summary),'<h2>Channel evidence</h2><p>Compare Internet-only and Counter-only side by side in the table. Mixed and Other/unknown remain separate. Four-category legend: '+', '.join(CHANNELS)+'. No median is fabricated for absent categories. Quotes are not customer-weighted and differences are not causal.</p>'+('<ul>'+absent+'</ul>' if absent else '<p>All four categories have observations for each resolved destination.</p>'),formatted_table(results.channel_summary),'<h2>Service-level provider evidence</h2>']
+    sections += [formatted_table(results.period_summary, exact=True),'<h2>Channel evidence</h2><p>Compare Internet-only and Counter-only side by side in the table. Mixed and Other/unknown remain separate. Four-category legend: '+', '.join(CHANNELS)+'. No median is fabricated for absent categories. Quotes are not customer-weighted and differences are not causal.</p>'+('<ul>'+absent+'</ul>' if absent else '<p>All four categories have observations for each resolved destination.</p>'),formatted_table(results.channel_summary, exact=True),'<h2>Service-level provider evidence</h2>']
     n=m.matching_row_count if preview is None else min(preview,m.matching_row_count)
-    sections += [f'<p>Showing {n} of {m.matching_row_count} service rows. The HTML export contains the complete table. Unknown—non-transparent means the rate was undisclosed, not free.</p>',formatted_table(results.provider_details if preview is None else results.provider_details.iloc[:preview],provider=True),'<h2>Limitations & attribution</h2><p>'+escape(LIMITATIONS)+'</p><p>Remittance Prices Worldwide, World Bank Group · <a href="https://datacatalog.worldbank.org/search/dataset/0037898/Remittance-Prices-Worldwide">Source</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adaptation: cleaned USA quotes and derived summaries. Outputs stay local.</p>']
+    sections += [f'<p>Showing {n} of {m.matching_row_count} service rows. The HTML export contains the complete table. Unknown—non-transparent means the rate was undisclosed, not free.</p>',formatted_table(results.provider_details if preview is None else results.provider_details.iloc[:preview],provider=True,exact=True),'<h2>Limitations & attribution</h2><p>'+escape(LIMITATIONS)+'</p><p>Remittance Prices Worldwide, World Bank Group · <a href="https://datacatalog.worldbank.org/search/dataset/0037898/Remittance-Prices-Worldwide">Source</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adaptation: cleaned USA quotes and derived summaries. Outputs stay local.</p>']
     return sections

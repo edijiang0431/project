@@ -61,6 +61,7 @@ class AnalysisMetadata:
     preparation: PreparationMetadata
     runtime_validation_warnings: tuple[str, ...]
     available_periods: tuple[str, ...] = ()
+    scoring_mode: str = 'Community campaign priority'
 @dataclass(frozen=True)
 class AnalysisResults:
     corridor_summary: pd.DataFrame

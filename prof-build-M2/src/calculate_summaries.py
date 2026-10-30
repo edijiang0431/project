@@ -25,12 +25,12 @@ def measure_groups(df, extra):
     out['non_transparent_quote_share']=out.non_transparent_quotes/out.total_quotes
     return out
 
-def input_snapshot(requested_periods,requested_destination_codes,amount,weights,relevance,preparation):
+def input_snapshot(requested_periods,requested_destination_codes,amount,weights,relevance,preparation,scoring_mode='Community campaign priority'):
     validate_amount_weights(amount,weights)
-    return (canonical_selection(requested_periods,'periods'),canonical_selection(requested_destination_codes,'destinations'),amount,weights,relevance_snapshot(relevance),preparation.prepared_filename,preparation.prepared_sha256)
+    return (canonical_selection(requested_periods,'periods'),canonical_selection(requested_destination_codes,'destinations'),amount,weights,relevance_snapshot(relevance),preparation.prepared_filename,preparation.prepared_sha256,scoring_mode)
 
 def metadata_snapshot(m):
-    return (canonical_selection(m.requested_periods,'periods'),canonical_selection(m.requested_destination_codes,'destinations'),m.transfer_amount_usd,m.weights,m.validated_relevance_snapshot,m.preparation.prepared_filename,m.preparation.prepared_sha256)
+    return (canonical_selection(m.requested_periods,'periods'),canonical_selection(m.requested_destination_codes,'destinations'),m.transfer_amount_usd,m.weights,m.validated_relevance_snapshot,m.preparation.prepared_filename,m.preparation.prepared_sha256,m.scoring_mode)
 
 def calculate_summaries(filtered_data: pd.DataFrame, transfer_amount_usd: int,
     relevance_inputs: pd.DataFrame, weights: ScoringWeights,
