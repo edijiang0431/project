@@ -47,6 +47,15 @@ class RelevanceInputSnapshot:
     relevance_evidence_source: str | None
     relevance_evidence_date: pd.Timestamp | None
 @dataclass(frozen=True)
+class CostReference:
+    scope: str
+    periods: tuple[str, ...]
+    transfer_amount_usd: int
+    valid_corridors: int
+    minimum_pct: float | None
+    maximum_pct: float | None
+
+@dataclass(frozen=True)
 class AnalysisMetadata:
     requested_periods: tuple[str, ...]
     requested_destination_codes: tuple[str, ...]
@@ -62,6 +71,7 @@ class AnalysisMetadata:
     runtime_validation_warnings: tuple[str, ...]
     available_periods: tuple[str, ...] = ()
     scoring_mode: str = 'Community campaign priority'
+    cost_reference: CostReference | None = None
 @dataclass(frozen=True)
 class AnalysisResults:
     corridor_summary: pd.DataFrame

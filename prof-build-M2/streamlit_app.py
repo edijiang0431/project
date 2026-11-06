@@ -201,7 +201,8 @@ def show_results(results):
             st.caption(DIRECTION)
             with st.expander('Score components, contributions and exact calculated fields'):
                 st.write('Contribution = applicable weight times component. A missing zero-weight component contributes zero but its component value stays unavailable. Positive-weight missing components leave the total score unavailable.')
-                st.write('Relative cost uses only the selected comparison set, including the selected periods and basket. Two valid corridor medians are required. Equal valid medians normalize to zero; actual costs are unchanged.')
+                st.write('Relative cost uses all available USA-origin corridors for the selected periods and basket, before displayed-country filtering. At least two valid reference medians are required. Equal medians normalize to zero; actual costs are unchanged.')
+                st.write(vars(m.cost_reference) if m.cost_reference is not None else 'Reference metadata unavailable.')
                 raw_table(score_contributions(results))
                 raw_table(results.corridor_summary)
         with trends:
@@ -280,7 +281,8 @@ def show_results(results):
     with st.expander('Methodology and score interpretation'):
         st.write(POOLING)
         st.write(DIRECTION)
-        st.write('Cost normalization uses the selected comparison set, not a fixed or shared reference. Disclosure is the fraction flagged non-transparent. Community relevance uses the existing documented 0-5 input divided by 5 when all evidence fields are complete. No new rating rubric is supplied.')
+        st.write('Cost normalization uses a shared reference of all available USA-origin corridors for the selected periods and basket. Country display filters do not change the bounds; periods, basket and data version can. Disclosure is the fraction flagged non-transparent. Community relevance uses the documented 0-5 input divided by 5; no ratings are inferred.')
+        st.write({'Cost reference': vars(m.cost_reference) if m.cost_reference is not None else None, 'Data version (prepared SHA-256)': m.preparation.prepared_sha256})
     with st.expander('Historical-data limitations and attribution'):
         st.write(LIMITATIONS)
         st.write('Remittance Prices Worldwide, World Bank Group | CC BY 4.0. Adaptation: cleaned USA quotes and derived summaries.')

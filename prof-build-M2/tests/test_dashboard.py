@@ -25,7 +25,7 @@ def real_data():
     return quotes, prep, relevance
 
 
-@pytest.mark.parametrize('destinations,expected_normalized', [(['MEX'], None), (['MEX', 'PHL'], 1.0), ([], 0.314598)])
+@pytest.mark.parametrize('destinations,expected_normalized', [(['MEX'], 0.314598), (['MEX', 'PHL'], 0.314598), ([], 0.314598)])
 def test_real_notebook_dashboard_parity(real_data, monkeypatch, destinations, expected_normalized):
     quotes, prep, relevance = real_data
     # Bypass only notebook display; exercise its unchanged orchestration.
@@ -101,7 +101,7 @@ def test_ui_requires_update_and_blocks_stale_export(quotes, prep, tmp_path, monk
     assert_clean(app)
     assert not app.button(key='export').disabled
     assert any('Some scores are unavailable' in item.value for item in app.info)
-    assert any('at least two selected corridors' in str(value) for item in app.dataframe for value in item.value.to_numpy().flat)
+    assert any('at least two reference corridors' in str(value) for item in app.dataframe for value in item.value.to_numpy().flat)
     app.button(key='export').click().run()
     assert_clean(app)
     assert any(button.key == 'download' for button in app.download_button)
@@ -180,7 +180,7 @@ def test_ui_real_requested_examples(real_data):
     assert app.multiselect(key='destinations').value == ['MEX']
     assert app.selectbox(key='amount').value == 200
     assert app.multiselect(key='periods').value == ['2025_3Q']
-    for destinations, expected in [(['MEX'], None), (['MEX', 'PHL'], 1.0), ([], 0.314598)]:
+    for destinations, expected in [(['MEX'], 0.314598), (['MEX', 'PHL'], 0.314598), ([], 0.314598)]:
         app.multiselect(key='destinations').set_value(destinations)
         app.button(key='update').click().run()
         assert_clean(app)

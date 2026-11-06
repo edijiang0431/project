@@ -2,7 +2,7 @@
 from dataclasses import replace
 from .dashboard_presentation import COMMUNITY_MODE, validate_mode_weights
 from .contracts import period_key, resolve_choices, validate_amount_weights, validate_choices
-from .calculate_summaries import calculate_summaries, input_snapshot, metadata_snapshot
+from .calculate_summaries import calculate_summaries, input_snapshot, metadata_snapshot, build_cost_reference
 from .filter_data import filter_quotes
 from .load_relevance import validate_relevance
 from .export_briefing import export_briefing
@@ -31,6 +31,7 @@ class DashboardSession:
             filtered, amount, rel, weights, list(periods), list(destinations),
             rp, rd, self.preparation,
             available_periods=tuple(sorted(self.quotes.period.unique(), key=period_key)),
+            cost_reference=build_cost_reference(self.quotes, rp, amount),
         )
         results = replace(results, metadata=replace(results.metadata, scoring_mode=scoring_mode))
         self.last_successful_results = results

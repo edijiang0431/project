@@ -106,13 +106,14 @@ def test_conditional_cost_warning_and_zero_weight_missing_component(quotes, prep
     assert not any('Relative cost unavailable' in x for x in current_warnings(result))
     assert 'Relative cost unavailable' not in ''.join(body_sections(result))
     single = analyze(quotes, prep, destinations=['MEX'])
-    assert any('Relative cost unavailable' in x for x in current_warnings(single))
-    assert single.corridor_summary.campaign_priority_score.isna().all()
+    assert not any('Relative cost unavailable' in x for x in current_warnings(single))
+    assert single.corridor_summary.cost_normalized.iloc[0] == 1
+    assert single.corridor_summary.campaign_priority_score.notna().all()
     zero = analyze(quotes, prep, destinations=['MEX'], weights=ScoringWeights(0, 1, 0))
-    assert pd.isna(zero.corridor_summary.cost_normalized.iloc[0])
+    assert zero.corridor_summary.cost_normalized.iloc[0] == 1
     assert zero.corridor_summary.campaign_priority_score.iloc[0] == 0
     part = score_contributions(zero).query("Component == 'Relative cost'").iloc[0]
-    assert pd.isna(part['Component value']) and part.Contribution == 0
+    assert part['Component value'] == 1 and part.Contribution == 0
     equal = quotes.copy()
     equal.cc1_total_cost_pct = 6.
     result = analyze(equal, prep)
@@ -191,7 +192,9 @@ def test_real_mexico_armenia_and_dynamic_channel_sample(real_data):
         assert actual.non_transparent_quotes == rows.transparent.eq('no').sum()
     mex = result.corridor_summary.set_index('destination_code').loc['MEX']
     assert mex.total_quotes == 1329 and mex.non_transparent_quotes == 1
-    expected = (medians['MEX'] - min(medians.values())) / (max(medians.values()) - min(medians.values()))
+    all_costs = pd.to_numeric(raw.loc[raw.transparent.eq('yes'), 'cc1_total_cost_pct'].replace('', np.nan))
+    reference_medians = raw.loc[raw.transparent.eq('yes')].assign(cost=all_costs).groupby('destination_code').cost.median().dropna()
+    expected = (medians['MEX'] - reference_medians.min()) / (reference_medians.max() - reference_medians.min())
     assert mex.cost_normalized == pytest.approx(expected)
     assert mex.campaign_priority_score == pytest.approx(2 / 3 * expected + 1 / 3 * (1 / 1329))
     assert result.corridor_summary.campaign_priority_score.notna().all()

@@ -4,7 +4,14 @@ import pandas as pd
 from .contracts import *
 from .load_relevance import validate_relevance, relevance_snapshot
 
-RELATIVE_REASON = 'Relative cost unavailable: at least two selected corridors with valid median costs are required'
+RELATIVE_REASON = 'Relative cost unavailable: at least two reference corridors with valid median costs are required'
+
+def build_cost_reference(quotes, periods, amount, scope='All available USA-origin corridors'):
+    prefix = 'cc1' if amount == 200 else 'cc2'
+    rows = quotes.loc[quotes.source_code.eq('USA') & quotes.period.isin(periods) & quotes.transparent.eq('yes')]
+    medians = rows.groupby('destination_code')[prefix + '_total_cost_pct'].median().dropna()
+    return CostReference(scope, tuple(sorted(set(periods), key=period_key)), amount, len(medians),
+        float(medians.min()) if len(medians) else None, float(medians.max()) if len(medians) else None)
 
 def classify_channel(value):
     if pd.isna(value) or not str(value).strip():
@@ -37,11 +44,15 @@ def calculate_summaries(filtered_data: pd.DataFrame, transfer_amount_usd: int,
     requested_periods: list[str], requested_destination_codes: list[str],
     resolved_periods: list[str], resolved_destinations: list[ResolvedDestination],
     preparation: PreparationMetadata, runtime_validation_warnings: tuple[str,...]=(),
-    available_periods: tuple[str,...]=()) -> AnalysisResults:
+    available_periods: tuple[str,...]=(), cost_reference: CostReference | None=None) -> AnalysisResults:
     validate_amount_weights(transfer_amount_usd,weights)
     require_columns(filtered_data,PREPARED)
     canonical_selection(requested_periods,'periods'); canonical_selection(requested_destination_codes,'destinations')
     ps=tuple(sorted(set(resolved_periods),key=period_key))
+    if cost_reference is None:
+        cost_reference = build_cost_reference(filtered_data, ps, transfer_amount_usd, 'Corridors in supplied calculation input')
+    if cost_reference.periods != ps or cost_reference.transfer_amount_usd != transfer_amount_usd:
+        raise ValueError('Cost reference periods or transfer amount disagree with analysis')
     if len(ps)!=len(resolved_periods):
         raise ValueError('Duplicate resolved periods')
     mapping={d.destination_code:d.destination_name for d in resolved_destinations}
@@ -89,6 +100,8 @@ def calculate_summaries(filtered_data: pd.DataFrame, transfer_amount_usd: int,
         warnings.append(f'Access point {token!r}: {count} distinct affected quotes')
     bounds=[None if df.date.empty or df.date.isna().all() else v for v in [df.date.min(),df.date.max()]]
     meta=AnalysisMetadata(tuple(requested_periods),tuple(requested_destination_codes),ps,tuple(resolved_destinations),transfer_amount_usd,ScoringWeights(weights.cost,weights.transparency,weights.relevance),relevance_snapshot(rel),len(df),*bounds,preparation,tuple(warnings),tuple(available_periods or ps))
+    from dataclasses import replace
+    meta = replace(meta, cost_reference=cost_reference)
     if df.empty:
         return AnalysisResults(**{k:result_table(k) for k in SCHEMAS},metadata=meta)
     prefix='cc1' if transfer_amount_usd==200 else 'cc2'
@@ -104,8 +117,9 @@ def calculate_summaries(filtered_data: pd.DataFrame, transfer_amount_usd: int,
     cor=cor.merge(rel.rename(columns={'rationale':'relevance_rationale','evidence_source':'relevance_evidence_source','evidence_date':'relevance_evidence_date'}),on='destination_code',how='left',validate='many_to_one')
     valid=cor.median_total_cost.dropna()
     cor['cost_normalized']=np.nan
-    if len(valid)>=2:
-        cor['cost_normalized']=(cor.median_total_cost-valid.min())/(valid.max()-valid.min()) if valid.max()!=valid.min() else cor.median_total_cost.where(cor.median_total_cost.isna(),0.0)
+    if cost_reference.valid_corridors >= 2:
+        low, high = cost_reference.minimum_pct, cost_reference.maximum_pct
+        cor['cost_normalized']=(cor.median_total_cost-low)/(high-low) if high!=low else cor.median_total_cost.where(cor.median_total_cost.isna(),0.0)
     cor['transparency_normalized']=cor.non_transparent_quote_share
     complete=cor[['relevance_rating','relevance_rationale','relevance_evidence_source','relevance_evidence_date']].notna().all(axis=1)
     cor['relevance_normalized']=(cor.relevance_rating/5).where(complete)

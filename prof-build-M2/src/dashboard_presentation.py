@@ -72,8 +72,9 @@ def current_warnings(results):
     messages = []
     if df.empty:
         return ['No matching quotes. Choose another destination or survey period, then Update analysis.']
-    if df.median_total_cost.notna().sum() < 2:
-        messages.append('Relative cost unavailable: at least two selected corridors with valid median costs are required. Add a receiving country or change periods. A positive cost weight leaves the score unavailable; a zero cost weight contributes zero without filling the missing component.')
+    reference_count = results.metadata.cost_reference.valid_corridors if results.metadata.cost_reference is not None else df.median_total_cost.notna().sum()
+    if reference_count < 2:
+        messages.append('Relative cost unavailable: at least two reference corridors with valid median costs are required. Change periods or transfer amount; adding displayed countries does not change the shared reference. A positive cost weight leaves the score unavailable; a zero cost weight contributes zero without filling the missing component.')
     for row in df.itertuples():
         if pd.isna(row.median_total_cost):
             messages.append(f'{row.receiving_country}: no eligible total costs for this basket. Try another period or basket; missing costs are not zero.')

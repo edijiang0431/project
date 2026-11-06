@@ -2,7 +2,7 @@
 from IPython.display import HTML, display, clear_output
 import matplotlib.pyplot as plt
 from .contracts import *
-from .calculate_summaries import calculate_summaries, input_snapshot, metadata_snapshot
+from .calculate_summaries import calculate_summaries, input_snapshot, metadata_snapshot, build_cost_reference
 from .filter_data import filter_quotes
 from .load_relevance import validate_relevance
 from .present_results import present_results
@@ -28,7 +28,7 @@ class NotebookSession:
         try:
             rp,rd,rel=self.validate_inputs(periods,destinations,amount,weights,relevance)
             filtered=filter_quotes(self.quotes,rp,[d.destination_code for d in rd])
-            results=calculate_summaries(filtered,amount,rel,weights,list(periods),list(destinations),rp,rd,self.preparation,available_periods=tuple(sorted(self.quotes.period.unique(),key=period_key)))
+            results=calculate_summaries(filtered,amount,rel,weights,list(periods),list(destinations),rp,rd,self.preparation,available_periods=tuple(sorted(self.quotes.period.unique(),key=period_key)),cost_reference=build_cost_reference(self.quotes,rp,amount))
             present_results(results,provider_preview_rows)
             self.last_successful_results=results
             self.current_run_valid=True
