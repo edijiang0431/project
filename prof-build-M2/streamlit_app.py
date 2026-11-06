@@ -16,6 +16,7 @@ from src.dashboard_presentation import (
 from src.load_data import load_data, load_preparation_metadata
 from src.load_relevance import load_relevance, validate_relevance
 from src.rendering import LIMITATIONS, ACCESS_CHECKLIST
+from src.evidence_summaries import channel_cost_comparison
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / 'data' / 'rpw_usa_clean.csv.gz'
@@ -232,6 +233,9 @@ def show_results(results):
             channel_display['non_transparent_quote_share'] *= 100
             channel_display = channel_display.rename(columns={'non_transparent_quote_share': 'Non-transparent quotes (%)'})
             table(channel_display)
+            st.subheader('Channel median difference in dollars')
+            st.caption('Counter-only minus Internet-only, in percentage points and USD-equivalent dollars for the selected basket. Positive means counter services have the higher median; this is not guaranteed individual savings.')
+            table(channel_cost_comparison(results))
             for message in small_sample_messages(results):
                 st.warning(message)
             with st.expander('Channel period and provider details (view-only drill-down)'):
