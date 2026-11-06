@@ -15,7 +15,7 @@ from src.dashboard_presentation import (
 )
 from src.load_data import load_data, load_preparation_metadata
 from src.load_relevance import load_relevance, validate_relevance
-from src.rendering import LIMITATIONS
+from src.rendering import LIMITATIONS, ACCESS_CHECKLIST
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / 'data' / 'rpw_usa_clean.csv.gz'
@@ -223,6 +223,10 @@ def show_results(results):
                 raw_table(results.period_summary)
         with channels:
             st.caption('Internet-only, Counter-only, Mixed and Other/unknown remain separate. These are different sampled services and periods; comparisons do not show that switching causes savings or identify a best channel.')
+            with st.expander('Internet-access discussion checklist'):
+                st.caption('Discuss with the sender before encouraging a switch. These are questions, not inferred personal facts; this app stores no answers.')
+                for question in ACCESS_CHECKLIST:
+                    st.markdown('- ' + question)
             columns = ['receiving_country', 'channel_category', 'median_total_cost', 'observations', 'total_quotes', 'non_transparent_quotes', 'non_transparent_quote_share']
             channel_display = results.channel_summary[columns].copy()
             channel_display['non_transparent_quote_share'] *= 100
@@ -319,7 +323,7 @@ def main():
         selected_periods = st.multiselect('Survey periods', periods, default=[periods[0]], format_func=quarter_label, key='periods')
         st.caption('USD 200 or 500 selects the transfer-cost basket; it does not filter by provider fees.')
         amount = st.selectbox('Transfer amount (USD)', [200, 500], key='amount')
-        mode = st.selectbox('Scoring mode', MODES, key='scoring_mode', on_change=reset_mode_weights)
+        mode = st.selectbox('Scoring mode', MODES, index=MODES.index(COST_MODE), key='scoring_mode', on_change=reset_mode_weights)
         action = st.container()
         st.caption('Update applies these selections. Saved-result settings remain unchanged until a successful update.')
         st.caption('Weights express relative importance in the selected score, not fees charged to the sender. Switching modes restores that mode\'s defaults.')

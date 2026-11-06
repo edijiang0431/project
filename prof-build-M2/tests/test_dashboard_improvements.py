@@ -217,7 +217,8 @@ def test_real_mexico_armenia_and_dynamic_channel_sample(real_data):
 
 def test_ui_modes_defaults_stale_exports_and_template(quotes, prep):
     app = app_for(quotes, prep)
-    assert app.selectbox(key='scoring_mode').value == COMMUNITY_MODE
+    assert app.selectbox(key='scoring_mode').value == COST_MODE
+    app.selectbox(key='scoring_mode').select(COMMUNITY_MODE).run()
     assert any(button.key == 'evidence_template' for button in app.download_button)
     app.multiselect(key='destinations').set_value(['MEX', 'IND'])
     app.multiselect(key='periods').set_value([])
