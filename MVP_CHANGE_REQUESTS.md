@@ -1,6 +1,6 @@
 # Local MVP change-request implementation
 
-Implemented on `feature/mvp-change-requests`, based on the Streamlit dashboard branch and merged with the latest main-branch test additions. Nothing has been pushed or deployed. The original `one-shot-prompt.md`, prepared data and community CSV are unchanged. Community evidence remains optional and is never fabricated.
+Implemented on `feature/mvp-change-requests`, based on the Streamlit dashboard branch and merged with the latest main-branch test additions. This branch is being published for deployment; no public deployment has been verified. The original `one-shot-prompt.md`, prepared data and community CSV are unchanged. Community evidence remains optional and is never fabricated.
 
 ## Implemented behavior
 
@@ -39,7 +39,7 @@ The normalization change can alter rankings when cost competes with disclosure o
 ## Verification
 
 - Original dashboard suite, main-branch test additions and local Module 10 tests are retained.
-- The full-run total includes the two existing, still-untracked Module 10 tests in `tests/test_kanishk_channel_costs.py`; those are not part of the new implementation commits. The 15 request-specific acceptance checks are committed with the new code.
+- The full-run total includes the two Module 10 tests in `tests/test_kanishk_channel_costs.py`, included in the deployment branch alongside the 15 request-specific acceptance checks.
 - Fifteen request-specific acceptance checks passed, including real-data cases, missing/reversed channel comparisons, CSV input immutability, complete exports and a Streamlit shortcut/filter workflow.
 - Final regression run after summary-layout polish: **112 passed in 92.14s**. The summary uses readable country panels instead of a horizontally scrolling table.
 - A local browser verified the Cost & disclosure default and the shortcut's three observed quarters/138 Mexico quotes. This is local evidence, not a live-host screenshot for the MVP validation.
@@ -54,4 +54,4 @@ uv sync --locked
 uv run streamlit run streamlit_app.py --server.address 127.0.0.1 --browser.gatherUsageStats false
 ```
 
-Run tests with `uv run pytest -q` from the same folder. The local implementation branch has not been published to GitHub.
+Run tests with `uv run pytest -q` from the same folder. Check the root README for the branch and current deployment status.
