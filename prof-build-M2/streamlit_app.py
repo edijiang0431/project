@@ -182,7 +182,12 @@ def show_results(results):
         weight_text += f', community {m.weights.relevance:.12g}'
     st.write(f'Executed mode: **{m.scoring_mode}**. Applicable weights: {weight_text}.')
     st.subheader('Key findings and evidence readiness')
-    st.dataframe(key_findings(results), hide_index=True, width='stretch')
+    findings = key_findings(results)
+    for finding in findings.to_dict('records'):
+        with st.expander(finding['Country'] + ' — findings and next steps', expanded=len(findings) <= 3):
+            st.write(finding['Price evidence'])
+            st.write('Community evidence: ' + finding['Community evidence'])
+            st.write('Next step: ' + finding['Next step'])
     counts = st.columns(3)
     counts[0].metric('Matching quotes', m.matching_row_count)
     counts[1].metric('Eligible cost quotes', int(results.corridor_summary.observations.sum()))

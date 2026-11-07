@@ -49,7 +49,7 @@ A filled request (from the class lottery app):
 - **Evidence:** For USA to Mexico, Q3 2025 and USD 200, the notebook shows Internet-only median cost 4.01% from 29 quotes and Counter-only 4.60% from 15 quotes. This supports exploring Internet services, but the briefing offers no structured check of whether a sender has stable, secure Internet access. Price quotes do not establish individual access or suitability.
 - **Change:** Include an Internet-access checklist in the notebook briefing and offline export for CHIRLA staff to discuss with senders before encouraging a switch. Ask about connection reliability and secure access; present answers as community validation, never infer them from quote data.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `dd501dc`; checklist shared by dashboard, notebook briefing and HTML export. Not deployed.
 
 ### CR-02: Calculate the dollar equivalent of the channel median-cost difference
 
@@ -58,7 +58,7 @@ A filled request (from the class lottery app):
 - **Evidence:** For USA to Mexico, Q3 2025 and USD 200, Internet-only and Counter-only median costs are 4.01% and 4.60%. The briefing shows percentage medians but does not calculate their difference in dollars. The 0.59-percentage-point difference is equivalent to $1.18 on $200. My independent overall-median calculation also agrees with the app at 4.485% from 46 quotes; this request concerns interpretation, not a demonstrated calculation error.
 - **Change:** Calculate `(Counter-only median cost % - Internet-only median cost %) / 100 * selected transfer amount` for each selected corridor and display the dollar difference, its direction, the percentage-point difference and both eligible quote counts in the notebook and export. Show unavailable when either median is missing and describe the result as a historical group comparison, not guaranteed individual savings. Verify $1.18 for this selection and handle equal or reversed medians.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `49d1447`; positive, negative, equal and missing differences tested. Not deployed.
 
 ### CR-03: Add a cost-and-transparency comparison mode
 
@@ -67,7 +67,7 @@ A filled request (from the class lottery app):
 - **Evidence:** With MEX and PHL selected for 2025 Q3 and USD 200 using default weights, median costs were 4.485% and 3.96% and both non-transparent shares were zero, but composite scores remained unavailable because documented community relevance was missing.
 - **Change:** Add an explicitly selectable cost-and-transparency comparison mode with weights of two-thirds normalized cost and one-third non-transparent share, showing measures, contributions, and weights. Keep community evidence separate and missing values unavailable, retain the community-informed mode, and explain that this score does not assess community relevance or automatically select a campaign target.
 - **Priority:** high
-- **Status:** open
+- **Status:** built — mode introduced in `bfb0591`; made the startup default in local commit `dd501dc`, retaining optional community scoring. Not deployed.
 
 ### CR-04: Use a shared reference for cost normalization
 
@@ -76,7 +76,7 @@ A filled request (from the class lottery app):
 - **Evidence:** For 2025 Q3 and USD 200, Mexico's median remained 4.485% from 46 eligible quotes, but its normalized score changed from 1 for MEX–PHL to 0.314598 across 42 valid-cost corridors. Independent checks matched both displayed scores at six decimal places. Bounds changed from 3.96%–4.485% to 2.47%–8.875%. This follows the current formula rather than showing a calculation error.
 - **Change:** Calculate normalization bounds from all available USA-origin corridors with valid eligible medians for the selected periods and transfer amount before filtering displayed countries. Show reference scope, bounds, data version, and actual median costs; explain when scores can change and assess the effect on composite rankings before adoption.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `71ad9e4`; all-USA reference, scope/bounds/version disclosure and country-selection invariance tested. Impact assessment is recorded in `MVP_CHANGE_REQUESTS.md`. Not deployed.
 
 ### CR-05: Add a latest-four-calendar-quarters shortcut for trend analysis
 
@@ -85,7 +85,7 @@ A filled request (from the class lottery app):
 - **Evidence:** The default selection is MEX, 2025 Q3, USD 200. Running the existing analysis and rendering functions produces one cost point at 4.485% and one non-transparent-share point at 0; this cannot show whether a problem persists. Manually selecting multiple quarters produces a usable comparison. The current renderer already preserves 2025 Q2 as “No survey data” and breaks the line, and distinguishes an available but unselected quarter as “Not selected.” The missing convenience is selecting a recent calendar window without constructing the period list manually.
 - **Change:** Add an executable “Latest four calendar quarters” preset anchored to the latest available survey quarter. Apply it to the shared analysis period selection and rerun analysis so charts and summary tables remain consistent; visibly state the requested calendar window and available survey quarters used. For this dataset, the window must be 2024 Q4–2025 Q3, using Q4, Q1 and Q3 observations while retaining the Q2 gap, with no backfilling from older quarters. Preserve manual selection and show a clear message if the window contains fewer than two usable time points.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `9ae8011`; dashboard shortcut, notebook flag, no backfill, visible missing-quarter gap and stale-export protection tested. Not deployed.
 
 ### CR-06: Show usable-cost coverage alongside quarterly trend points
 
@@ -94,7 +94,7 @@ A filled request (from the class lottery app):
 - **Evidence:** For USA → MEX, 2025 Q1, USD 500, a CSV loop with decimal sorting independently gives a median of 2.77%, matching the app. There are 46 matching quotes and zero non-transparent quotes, but one transparent quote has a missing USD 500 cost, leaving only 45 eligible costs. The chart shows cost and non-transparent share; counts are available in the table below, but usable-cost coverage and the missing-cost distinction are not presented alongside the chart. A zero non-transparent share therefore does not establish complete cost coverage. This is an interpretation improvement, not a demonstrated median-calculation error.
 - **Change:** In the notebook and offline export, add a compact coverage summary next to the cost chart for each corridor and selected quarter: eligible cost observations / total quotes, coverage percentage, non-transparent exclusions, and transparent quotes with missing selected-amount costs. For this case show 45/46 (97.8%), zero non-transparent exclusions and one missing transparent cost. Calculate counts for the selected transfer amount, keep missing costs unavailable, and show unavailable coverage rather than dividing by zero when there are no quotes. Keep missing-survey gaps distinct from observed quarters with incomplete costs.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `9ae8011`; real-data 45/46 coverage, missing survey gaps and zero-quote handling tested. Not deployed.
 
 ### CR-07: Add a key-findings and evidence-readiness summary to exported briefings
 
@@ -103,7 +103,7 @@ A filled request (from the class lottery app):
 - **Evidence:** I personally inspected one exported HTML briefing in my browser. The provider evidence was easy to navigate and displayed 46 of 46 service rows, but the Priority Ranking had many technical columns requiring horizontal scrolling, and <NA>/NaT labels were unclear. Codex's automated checks of the Mexico 2025 Q3/USD 200 and 2025 Q1/USD 500 briefings confirmed matching settings and complete provider evidence; both ranking tables contained missing community-relevance documentation. Export passed the tested checks and already explained why scores were unavailable. The remaining issue is helping CHIRLA staff quickly understand the evidence and their next steps.
 - **Change:** Add a concise summary before the detailed ranking table showing key price findings, corridor-specific missing community-relevance inputs, and concrete evidence-gathering steps in plain language. Retain the full technical tables and existing unscored reasons, distinguish descriptive price evidence from incomplete community-informed prioritization, and do not infer community evidence or change scoring.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `9ae8011`; price findings, missing evidence and concrete next steps precede technical tables without inventing community inputs. Not deployed.
 
 ### CR-08: Add a visible-fee distribution summary alongside the median
 
@@ -112,7 +112,7 @@ A filled request (from the class lottery app):
 - **Evidence:** For USA → Mexico, 2025 Q3, USD 200, the app displayed a median visible fee of USD 5.695 from 46 eligible quotes. I personally ran the independent raw-workbook script and inspected its JSON output: 46 eligible fees, middle values USD 5.47 and USD 5.92, and median USD 5.695, giving a difference of USD 0.000 from the app. The recorded rows range from USD 0 to USD 35 and include two zero-fee quotes. The calculation passed this check, but the fee-summary table shows only the median and eligible count; staff must inspect individual provider rows to understand the variation.
 - **Change:** Alongside the median and eligible count, show minimum, maximum, zero-fee quote count, and a compact distribution plot in both the notebook and briefing, using the same selected corridor, periods, transfer basket, currency, and transparent nonmissing-fee eligibility rules. Preserve genuine zeros, keep missing fees unavailable, and explain that zero visible fee does not mean zero total remittance cost and that service quotes are not customer weights.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `9ae8011`; statistics and currency-separated plots shared by dashboard/notebook/export; zero, missing and non-transparent fee eligibility tested. Not deployed.
 
 ### CR-09: Add filtering and sorting to service-level provider evidence
 
@@ -127,7 +127,7 @@ A filled request (from the class lottery app):
   collection date and transparency status visible so sorting does not imply an automatic
   provider recommendation.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — sorting introduced in `bfb0591`; local commit `9ae8011` adds numeric filters, missing-value choice and visible service IDs. Analytical results and full exports remain unchanged by view filters. Not deployed.
 
 ### CR-10: Show a dollar cost breakdown for each service quote
 
@@ -143,4 +143,4 @@ A filled request (from the class lottery app):
   rounding. Keep unknown or missing components unknown, and retain the published total-cost
   percentage so small source-rounding differences remain visible rather than silently replaced.
 - **Priority:** medium
-- **Status:** open
+- **Status:** built — local commit `9ae8011`; USD component breakdown, published totals, source-rounding differences, missing components and non-USD fee handling tested. Not deployed.
