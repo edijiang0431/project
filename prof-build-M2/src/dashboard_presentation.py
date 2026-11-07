@@ -98,7 +98,8 @@ def period_grid(results):
     lookup = {(r.destination_code, r.reporting_period): r for r in results.period_summary.itertuples()}
     records = []
     for destination in m.resolved_destinations:
-        for n in range(period_key(m.resolved_periods[0]), period_key(m.resolved_periods[-1]) + 1):
+        window = m.calendar_window or m.resolved_periods
+        for n in range(period_key(window[0]), period_key(window[-1]) + 1):
             p = f'{n // 4:04}_{n % 4 + 1}Q'
             row = lookup.get((destination.destination_code, p))
             common = 'No survey data' if p not in m.available_periods else 'Not selected' if p not in m.resolved_periods else None
@@ -153,8 +154,9 @@ def trend_figure(results, metric='cost', scale='Start at zero'):
     return fig
 
 
-def recent_provider_rows(results, query='', sort='Most recent selected records', ascending=False):
-    df = results.provider_details.copy()
+def recent_provider_rows(results, query='', sort='Most recent selected records', ascending=False, filters=None, keep_unavailable=True):
+    from .evidence_summaries import filter_service_rows
+    df = filter_service_rows(results.provider_details, filters, keep_unavailable)
     if query.strip():
         mask = pd.Series(False, index=df.index)
         for col in ['provider', 'receiving_country', 'service_id', 'reporting_period']:

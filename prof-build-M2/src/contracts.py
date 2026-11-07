@@ -72,6 +72,7 @@ class AnalysisMetadata:
     available_periods: tuple[str, ...] = ()
     scoring_mode: str = 'Community campaign priority'
     cost_reference: CostReference | None = None
+    calendar_window: tuple[str, ...] = ()
 @dataclass(frozen=True)
 class AnalysisResults:
     corridor_summary: pd.DataFrame

@@ -23,7 +23,7 @@ class DashboardSession:
         rel = validate_relevance(relevance, set(self.quotes.destination_code))
         return rp, rd, rel
 
-    def analyze(self, periods, destinations, amount, weights, relevance, scoring_mode=COMMUNITY_MODE):
+    def analyze(self, periods, destinations, amount, weights, relevance, scoring_mode=COMMUNITY_MODE, calendar_window=()):
         self.current_run_valid = False
         rp, rd, rel = self.validate_inputs(periods, destinations, amount, weights, relevance, scoring_mode)
         filtered = filter_quotes(self.quotes, rp, [d.destination_code for d in rd])
@@ -33,21 +33,26 @@ class DashboardSession:
             available_periods=tuple(sorted(self.quotes.period.unique(), key=period_key)),
             cost_reference=build_cost_reference(self.quotes, rp, amount),
         )
-        results = replace(results, metadata=replace(results.metadata, scoring_mode=scoring_mode))
+        if calendar_window:
+            from .period_presets import latest_four_calendar_quarters
+            expected_periods, expected_window = latest_four_calendar_quarters(self.quotes.period.unique())
+            if tuple(calendar_window) != expected_window or set(periods) != set(expected_periods):
+                raise ValueError('Calendar preset disagrees with the latest four-quarter window')
+        results = replace(results, metadata=replace(results.metadata, scoring_mode=scoring_mode, calendar_window=tuple(calendar_window)))
         self.last_successful_results = results
         self.current_run_valid = True
         return results
 
-    def matches(self, periods, destinations, amount, weights, relevance, scoring_mode=COMMUNITY_MODE):
+    def matches(self, periods, destinations, amount, weights, relevance, scoring_mode=COMMUNITY_MODE, calendar_window=()):
         if not self.current_run_valid or self.last_successful_results is None:
             return False
         try:
             _, _, rel = self.validate_inputs(periods, destinations, amount, weights, relevance, scoring_mode)
-            return input_snapshot(periods, destinations, amount, weights, rel, self.preparation, scoring_mode) == metadata_snapshot(self.last_successful_results.metadata)
+            return input_snapshot(periods, destinations, amount, weights, rel, self.preparation, scoring_mode, calendar_window) == metadata_snapshot(self.last_successful_results.metadata)
         except (ValueError, TypeError):
             return False
 
-    def export(self, periods, destinations, amount, weights, relevance, output_dir='exports', scoring_mode=COMMUNITY_MODE):
-        if not self.matches(periods, destinations, amount, weights, relevance, scoring_mode):
+    def export(self, periods, destinations, amount, weights, relevance, output_dir='exports', scoring_mode=COMMUNITY_MODE, calendar_window=()):
+        if not self.matches(periods, destinations, amount, weights, relevance, scoring_mode, calendar_window):
             raise ValueError('Export blocked. Update analysis successfully with the current settings and community evidence.')
         return export_briefing(self.last_successful_results, output_dir)

@@ -24,14 +24,15 @@ Open the printed local URL (normally http://127.0.0.1:8501). Stop with Ctrl+C.
 No Jupyter server, notebook execution, kernel, live API or raw-workbook preparation
 is needed. The validated committed data loads once per browser session; start a
 new session after rebuilding it. The notebook remains available through the
-instructions below and retains its original three-component calculations.
+instructions below. Its three-component mode is retained, with the shared
+normalization and evidence improvements also applied to the notebook briefing.
 
 ### Select, then update
 
 The sidebar identifies destinations as receiving countries; origin is USA.
 Empty country or period lists mean all available values. USD 200/500 selects
 the transfer-cost basket. Defaults remain Mexico, latest available quarter,
-USD 200, **Community campaign priority** and weights 0.50/0.25/0.25.
+USD 200, **Cost & disclosure** and weights 2/3 cost, 1/3 disclosure, zero community.
 Click **Update analysis** beside the main selections to apply them. The compact
 saved-results summary always describes the executed analysis, not pending
 controls. Complete requested/resolved selections, exact weights and collection
@@ -40,11 +41,11 @@ A failed update clears the results display and blocks export.
 
 ### Explicit scoring modes
 
-- **Community campaign priority** (startup default): unchanged normalized cost,
+- **Community campaign priority** (optional): shared-reference normalized cost,
   non-transparent quote share and documented community relevance. Defaults are
   0.50/0.25/0.25. Incomplete evidence leaves the score unavailable when community
   weight is positive; descriptive evidence remains visible.
-- **Cost & disclosure** (explicit choice): existing normalized cost and existing
+- **Cost & disclosure** (startup default): shared-reference normalized cost and
   non-transparent quote share, with exact floating-point defaults `2/3`, `1/3`,
   and zero community weight. Community evidence is not required or included in
   this score; any supplied valid evidence remains available separately.
@@ -62,11 +63,24 @@ shows each value, weight and contribution. Missing positive-weight components
 leave the score unavailable. A zero-weight missing component contributes zero
 while its component value remains unavailable.
 
-Relative cost continues to use the **selected comparison set**, selected periods
-and basket. Fewer than two valid corridor medians leave it unavailable. Equal
-valid medians normalize to zero, not zero actual cost. CR-04/shared normalization
-is not implemented. Warnings describe current results; general methodology is
-kept separately in named expandable sections.
+Relative cost uses **all available USA-origin corridors for the selected periods
+and basket**, before filtering displayed countries. Country selection alone does
+not change the bounds or a retained country's score. Changing periods, basket,
+weights, evidence or data can still change scores. Fewer than two valid reference
+medians leave relative cost unavailable; equal medians normalize to zero, not zero
+actual cost. Reference scope, bounds and the prepared-data fingerprint are shown
+in the detailed results and HTML briefing.
+
+### Recent calendar window
+
+Click **Latest four calendar quarters** to apply a shared period selection and
+immediately update the analysis when the current evidence selection is valid.
+The window is anchored to the latest survey quarter, with no older-quarter
+backfill. For the reference release it is 2024 Q4–2025 Q3, using 2024 Q4, 2025 Q1
+and 2025 Q3 while keeping the missing 2025 Q2 gap. Manual period selection remains
+available and clears the preset. The notebook choices cell has an optional
+`use_latest_four_calendar_quarters` flag using the same helper. Fewer than two
+usable time points receives an explicit warning.
 
 ### Community evidence
 
@@ -151,15 +165,18 @@ uv run python scripts/smoke_notebook.py
 Checks cover controls, exact mode defaults, evidence upload/validation, conditional
 warnings, contributions, gap types, negative-cost scales, small channel samples,
 empty results and stale-export protection. Historical-data compatibility checks
-compare every result table/metadata with the original notebook workflow: Mexico
-2025 Q3 USD 200 median 4.485%; MEX + PHL Mexico normalized cost 1; all destinations
-approximately 0.314598. An independent CSV cross-check also covers MEX + ARM with
+compare every result table/metadata with the updated notebook workflow: Mexico
+2025 Q3 USD 200 median 4.485%; Mexico normalized cost is approximately 0.314598
+whether MEX, MEX + PHL, or all destinations are displayed. An independent CSV cross-check also covers MEX + ARM with
 all available periods. These fixed historical checks are not requirements for
 future data releases. Automated tests do not establish visual usability.
 
-Deferred: the proposed disclosure-trend replacement, CR-04/shared reference,
-a new relevance-rating rubric, and other teammates' requests. No hosting,
-deployment, external community data or automatic recommendations are included.
+The Module 9 requests are implemented in this local MVP branch: Internet-access
+checklist, channel dollar differences, cost/disclosure scoring, shared reference,
+recent-calendar shortcut, usable-cost coverage, key findings/evidence readiness,
+fee distributions, provider filters/sorts and per-service dollar breakdowns.
+Community ratings still require documented evidence; no external ratings are
+inferred. No hosting, deployment or automatic recommendations are included.
 
 ## Start from a fresh clone
 
@@ -224,7 +241,7 @@ The optional standalone `scripts/benchmark.py` uses Linux `/proc` and `resource`
 
 Run `uv run python scripts/audit_workbook.py <explicit-workbook>` for independent streaming baseline diagnostics (raw audit output stays in `data/raw/`; exact reference membership is saved only if the reference checksum matches). Run `uv run python scripts/benchmark.py` for five in-memory default/all-selection timings, startup, full export and memory measurements. `uv run python scripts/smoke_notebook.py` executes the notebook into ignored `artifacts/`. Results and limitations are recorded in `BUILD_REPORT.md`.
 
-Historical sampled quotes are not guaranteed live prices. Quarter medians pool eligible quotes; quote counts are not customers/market shares. Cost normalization depends on the selected comparison set and needs at least two valid corridor medians; equal medians normalize to zero while actual costs remain visible. Positive-weight components are required. Missing zero-weight components contribute zero without redistribution. Relevance is documented subjective researcher judgment. Channel differences are descriptive, not causal; a single time point implies no direction.
+Historical sampled quotes are not guaranteed live prices. Quarter medians pool eligible quotes; quote counts are not customers/market shares. Cost normalization uses all available USA corridors for the selected periods/basket and needs at least two valid reference medians; display-country filtering does not change it. Equal reference medians normalize to zero while actual costs remain visible. Positive-weight components are required. Missing zero-weight components contribute zero without redistribution. Relevance is documented subjective researcher judgment. Channel differences are descriptive, not causal; a single time point implies no direction.
 
 Data: **Remittance Prices Worldwide, World Bank Group**, [official catalog](https://datacatalog.worldbank.org/search/dataset/0037898/Remittance-Prices-Worldwide), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Adaptation: whitespace normalization, typed fields, USA subset and derived analysis. No personal member data. Everything stays local.
 

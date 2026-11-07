@@ -15,8 +15,10 @@ from src.dashboard_presentation import (
 )
 from src.load_data import load_data, load_preparation_metadata
 from src.load_relevance import load_relevance, validate_relevance
-from src.rendering import LIMITATIONS, ACCESS_CHECKLIST
-from src.evidence_summaries import channel_cost_comparison
+from src.rendering import LIMITATIONS, ACCESS_CHECKLIST, fee_distribution_figures
+from src.evidence_summaries import channel_cost_comparison, cost_coverage, key_findings, fee_distribution, service_cost_breakdown
+import matplotlib.pyplot as plt
+from src.period_presets import latest_four_calendar_quarters
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / 'data' / 'rpw_usa_clean.csv.gz'
@@ -154,11 +156,11 @@ def provider_table(rows):
     if rows.empty:
         st.info('No historical sampled quotes match this view-only search or drill-down. The saved analysis is unchanged.')
         return
-    out = rows.copy()
+    out = service_cost_breakdown(rows)
     out['reporting_period'] = out.reporting_period.map(quarter_label)
     out['collection_date'] = out.collection_date.dt.strftime('%Y-%m-%d')
     out['disclosure_status'] = out.transparent.map({'yes': 'Transparent', 'no': 'Flagged non-transparent'})
-    visible = ['provider', 'receiving_country', 'reporting_period', 'collection_date', 'channel_category', 'total_cost_pct', 'disclosure_status', 'transfer_fee', 'fee_currency', 'exchange_rate_margin']
+    visible = ['service_id', 'provider', 'receiving_country', 'reporting_period', 'collection_date', 'channel_category', 'total_cost_pct', 'disclosure_status', 'transfer_fee', 'fee_currency', 'exchange_rate_margin', 'transfer_fee_usd', 'fx_margin_usd', 'component_total_usd', 'published_total_usd', 'component_minus_published_usd', 'breakdown_status']
     # Formatting helper preserves original eligibility and labels undisclosed cost/margin.
     display = out[visible + ['transparent', 'access_point']].copy()
     for col in ['total_cost_pct', 'exchange_rate_margin']:
@@ -179,6 +181,8 @@ def show_results(results):
     if m.scoring_mode == COMMUNITY_MODE:
         weight_text += f', community {m.weights.relevance:.12g}'
     st.write(f'Executed mode: **{m.scoring_mode}**. Applicable weights: {weight_text}.')
+    st.subheader('Key findings and evidence readiness')
+    st.dataframe(key_findings(results), hide_index=True, width='stretch')
     counts = st.columns(3)
     counts[0].metric('Matching quotes', m.matching_row_count)
     counts[1].metric('Eligible cost quotes', int(results.corridor_summary.observations.sum()))
@@ -207,12 +211,21 @@ def show_results(results):
                 raw_table(results.corridor_summary)
         with trends:
             st.caption(POOLING)
+            if m.calendar_window:
+                st.info(f'Requested calendar window: {quarter_label(m.calendar_window[0])} to {quarter_label(m.calendar_window[-1])}. Missing survey quarters remain gaps.')
+                for destination in m.resolved_destinations:
+                    usable = results.period_summary.loc[results.period_summary.destination_code.eq(destination.destination_code), 'median_total_cost'].notna().sum()
+                    if usable < 2:
+                        st.warning(destination.destination_name + ': fewer than two usable time points; no trend conclusion.')
             scale = st.radio('Cost chart scale', ['Start at zero', 'Focus on variation'], horizontal=True, key='cost_scale')
             st.caption('Scale changes only this chart. Focus on variation uses a tighter axis and can magnify apparent changes. All quarterly points remain. Offline charts use the zero-inclusive scale.')
             grid = period_grid(results)
             if grid['Median total cost (%)'].lt(0).any():
                 st.info('Valid negative costs are present. The zero-inclusive scale extends below zero so these observations are not clipped.')
             st.plotly_chart(trend_figure(results, 'cost', scale), width='stretch', key='cost_trend')
+            st.subheader('Usable-cost coverage for the selected basket')
+            st.caption('Eligible costs / all matching quotes. Transparent quotes with missing costs are separate from non-transparent exclusions. Missing surveys and zero-quote selections have unavailable coverage.')
+            table(cost_coverage(results))
             st.caption('Hover for country, quarter, actual median cost percentage and eligible quote count. One observed point does not establish a trend.')
             st.subheader('Disclosure trend')
             st.caption('Flagged quotes / all matching quotes, displayed as a percentage. A zero means no sampled quote was flagged; it is not proof about every service in the market.')
@@ -254,12 +267,31 @@ def show_results(results):
             st.caption('Transfer fees are in the stated fee currency; exchange-rate margins are percentages. Each has its own eligible observation count. Separately calculated medians cannot simply be added to reproduce median total cost, even after converting units.')
             table(results.fee_summary)
             table(results.fx_margin_summary)
+            st.subheader('Visible-fee distribution')
+            st.caption('Transparent nonmissing fees only, grouped by actual currency. Zero visible fee is not zero total cost. Box plots describe sampled services, not customer usage.')
+            table(fee_distribution(results))
+            for figure in fee_distribution_figures(results):
+                st.pyplot(figure)
+                plt.close(figure)
         with providers:
             st.caption(f'Historical sampled quotes: all {m.matching_row_count} matching service rows are accessible. Initial order: most recent selected quarter, collection date, then provider/country/service ID. Search and sort affect only this table; complete exports retain all matching rows.')
             query = st.text_input('Search provider evidence', placeholder='Provider, receiving country, quarter or service ID', key='provider_search')
             sort = st.selectbox('Provider table ordering', ['Most recent selected records', 'Total cost (%)', 'Transfer fee', 'FX margin (%)', 'Provider'], key='provider_sort')
             ascending = st.checkbox('Ascending order for the selected field', key='provider_ascending')
-            rows = recent_provider_rows(results, query, sort, ascending)
+            with st.expander('Optional provider-table numeric filters'):
+                st.caption('View only: these filters do not change corridor scores, analytical eligibility or complete exports. Fee bounds are in each row\'s stated currency; do not compare currencies as if equal.')
+                filters = {}
+                for field, label in [('total_cost_pct', 'Total cost (%)'), ('transfer_fee', 'Transfer fee (stated currency)'), ('exchange_rate_margin', 'FX margin (%)')]:
+                    low = st.number_input('Minimum ' + label, value=None, key='provider_min_' + field)
+                    high = st.number_input('Maximum ' + label, value=None, key='provider_max_' + field)
+                    filters[field] = (low, high)
+                keep_unavailable = st.checkbox('Keep quotes with unavailable filtered metrics', value=True, key='provider_keep_unknown')
+            try:
+                rows = recent_provider_rows(results, query, sort, ascending, filters, keep_unavailable)
+            except ValueError as exc:
+                st.error(str(exc))
+                rows = results.provider_details.iloc[:0].copy()
+            st.caption('Dollar breakdown: FX margin (%) × selected USD-equivalent basket / 100; component total adds the USD fee. Full precision is retained. Published totals remain visible and may differ slightly due to source rounding. No non-USD fee conversion is assumed; unknown components stay unavailable.')
             st.caption(f'Showing {len(rows)} of {m.matching_row_count} matching quotes. Missing costs are unavailable, not free. Row order is not a recommendation.')
             provider_table(rows)
     with st.expander('Complete executed settings'):
@@ -305,6 +337,17 @@ def reset_mode_weights():
     st.session_state.pop('export_artifact', None)
 
 
+def apply_recent_window():
+    periods, window = latest_four_calendar_quarters(st.session_state.analysis_session.quotes.period.unique())
+    st.session_state.periods = periods
+    st.session_state.calendar_window = window
+    st.session_state.apply_period_preset = True
+
+
+def clear_calendar_window():
+    st.session_state.calendar_window = ()
+
+
 def main():
     st.set_page_config(page_title='RemitRight LA', page_icon=':material/currency_exchange:', layout='wide')
     st.title('RemitRight LA')
@@ -326,7 +369,11 @@ def main():
         st.caption('Destinations are receiving countries. Origin is USA. An empty list means all available countries.')
         destinations = st.multiselect('Destinations', sorted(names, key=lambda c: (names[c], c)), default=['MEX'], format_func=lambda c: f'{names[c]} ({c})', key='destinations')
         st.caption('Choose survey quarters. Empty means all available quarters; missing survey quarters remain gaps.')
-        selected_periods = st.multiselect('Survey periods', periods, default=[periods[0]], format_func=quarter_label, key='periods')
+        st.button('Latest four calendar quarters', on_click=apply_recent_window, key='latest_four')
+        selected_periods = st.multiselect('Survey periods', periods, default=[periods[0]], format_func=quarter_label, key='periods', on_change=clear_calendar_window)
+        window = st.session_state.get('calendar_window', ())
+        if window:
+            st.caption(f'Requested window: {quarter_label(window[0])} to {quarter_label(window[-1])}. Available surveys used: ' + ', '.join(map(quarter_label, selected_periods)) + '. Missing surveys remain gaps; no backfill.')
         st.caption('USD 200 or 500 selects the transfer-cost basket; it does not filter by provider fees.')
         amount = st.selectbox('Transfer amount (USD)', [200, 500], key='amount')
         mode = st.selectbox('Scoring mode', MODES, index=MODES.index(COST_MODE), key='scoring_mode', on_change=reset_mode_weights)
@@ -349,14 +396,15 @@ def main():
     args = (selected_periods, destinations, amount, ScoringWeights(cost, disclosure, relevance), st.session_state.relevance)
     with action:
         submitted = st.button('Update analysis', type='primary', key='update', disabled=not evidence_ready)
+        submitted = (st.session_state.pop('apply_period_preset', False) and evidence_ready) or submitted
     if submitted:
         st.session_state.pop('export_artifact', None)
         try:
             with st.spinner('Updating analysis...'):
-                session.analyze(*args, scoring_mode=mode)
+                session.analyze(*args, scoring_mode=mode, calendar_window=window)
         except (ValueError, TypeError) as exc:
             st.error(f'Analysis could not be updated: {exc}. Correct the settings and Update analysis. Export is blocked.')
-    current = evidence_ready and session.matches(*args, scoring_mode=mode)
+    current = evidence_ready and session.matches(*args, scoring_mode=mode, calendar_window=window)
     if session.last_successful_results is not None and session.current_run_valid:
         if not current:
             st.warning('Selected controls or evidence differ from the displayed results. Update analysis to apply them; export is blocked until the results match.')
@@ -367,7 +415,7 @@ def main():
     st.caption('Create and download the exact saved analysis, with mode, weights, applied evidence, complete provider rows and embedded static charts. View-only search, sort and chart scale do not change the export.')
     if st.button('Create HTML briefing', key='export', disabled=not current):
         try:
-            path = session.export(*args, output_dir=ROOT / 'exports', scoring_mode=mode)
+            path = session.export(*args, output_dir=ROOT / 'exports', scoring_mode=mode, calendar_window=window)
             st.session_state.export_artifact = (path.name, path.read_bytes())
             st.success(f'Briefing created locally: {path.name}')
         except (ValueError, OSError) as exc:
