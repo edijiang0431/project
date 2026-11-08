@@ -67,7 +67,7 @@ I would keep this feature for that limited purpose and make no additional change
 
 ### Appendix: independent calculation
 
-Complete code for the check summarized in Part 4. Save it as `cases/check_ana_channels.py`. From the team repo, change into `prof-build-M2`, then run `uv run python ../cases/check_ana_channels.py`. The script reads prepared data and imports none of the app calculation functions.
+Complete code for the check summarized in Part 4. Save it as `project-dashboard/check_ana_channels.py`. From the team repo, change into `prof-build-M2`, then run `uv run python ../project-dashboard/check_ana_channels.py`. The script reads prepared data and imports none of the app calculation functions.
 
 ```python
 import csv

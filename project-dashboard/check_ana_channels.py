@@ -1,6 +1,6 @@
 """Independent check: standard-library CSV reading and Decimal medians.
 
-Run from prof-build-M2: uv run python ../cases/check_ana_channels.py
+Run from prof-build-M2: uv run python ../project-dashboard/check_ana_channels.py
 Reads prepared quotes; does not import dashboard calculation functions or check Excel cleaning.
 """
 import csv
