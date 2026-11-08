@@ -153,3 +153,13 @@ A filled request (from the class lottery app):
 - **Change:** Add per-quarter provider and payment/access/payout-category counts beside the cost and coverage evidence. Explain that equal counts do not establish unchanged services. Retain existing medians, expose missing categories and do not automatically assert product matches. This supports other corridors and historical users without changing scores or other users' answers.
 - **Priority:** medium
 - **Status:** open
+
+
+### CR-12: Compare $200 and $500 transfer schedules on paired service quotes
+
+- **From:** edijiang0431, 2026-11-07
+- **Part:** Part 2 — Cases (Lea’s remittance schedule)
+- **Evidence:** For USA to Philippines, 2025 Q3, the dashboard showed historical median costs of 3.960% for 58 eligible $200 quotes and 2.860% for 57 eligible $500 quotes. One service had no usable $500 cost. Among 57 paired records, two $500 transfers cost less than five $200 transfers on 50 records, tied on six, and cost more on one. The median paired savings for two transfers was $13.10 per $1,000 sent.
+- **Change:** Add an optional comparison for the selected corridor and quarter using service records with eligible costs at both amounts. Show the paired and excluded counts, estimated costs per $1,000 for both schedules, and the distribution of paired cost differences. Label the estimates as historical and state that the calculation assumes the same quote terms across installments. Keep the existing corridor summaries available.
+- **Priority:** medium
+- **Status:** open
