@@ -3,7 +3,7 @@
 Reconstructs the earlier in-memory investigation; it is not an archived original.
 Uses only Python's standard library and reads pinned Git blobs without checkout.
 Does not import application helpers, change files, or validate the Excel source.
-Run from cases/: python verification/verify_elena_trends.py
+Run from cases/elena/: python verification/verify_elena_trends.py
 """
 
 import csv
@@ -64,7 +64,7 @@ def shown(value):
 
 
 def main():
-    repo = Path(__file__).resolve().parents[2]
+    repo = Path(__file__).resolve().parents[3]
     blob = subprocess.check_output(['git', 'show', COMMIT + ':' + DATA_PATH], cwd=repo)
     digest = hashlib.sha256(blob).hexdigest()
     if digest != EXPECTED_SHA256:

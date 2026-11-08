@@ -6,7 +6,7 @@ import json
 import re
 import sys
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 TOOLS = ROOT.parent / 'tmp/pdfs/packages'
 sys.path.insert(0, str(TOOLS))
 import mistune
@@ -23,7 +23,7 @@ from reportlab.platypus import (
     Table, TableStyle, PageBreak, NextPageTemplate, KeepTogether,
 )
 
-CASES = ROOT / 'cases'
+CASES = ROOT / 'cases/elena'
 WORK = ROOT.parent / 'tmp/pdfs/elena-finalization'
 WORK.mkdir(parents=True, exist_ok=True)
 SOURCE = CASES / 'elena-remittance-trends.md'

@@ -186,12 +186,12 @@ The verification script reports the full 37-quarter available history as well as
 
 **What could they wrongly conclude from it?** A lower final median could be mistaken for a steady decline, unchanged products becoming cheaper, consumer savings, improved affordability or a policy effect. Q1 is higher than Q4, Q2 is missing, service profiles differ and the data lack customer outcomes or a causal comparison. Relevant Module 11 issues include one row per what, the real thing or a stand-in, which dates belong and same mix.
 
-**Reproducible independent check.** `cases/verification/verify_elena_trends.py` is a clearly labelled reconstruction of the earlier in-memory investigation, rerun for this review. It uses only the Python standard library, reads the exact committed prepared-data blob, verifies its SHA-256, rejects duplicate profile keys, and imports no application calculation helpers. It checks prepared data; it does not repeat the earlier independent Excel-source comparison. Full saved output: `cases/verification/elena-verification-output.txt`.
+**Reproducible independent check.** `cases/elena/verification/verify_elena_trends.py` is a clearly labelled reconstruction of the earlier in-memory investigation, rerun for this review. It uses only the Python standard library, reads the exact committed prepared-data blob, verifies its SHA-256, rejects duplicate profile keys, and imports no application calculation helpers. It checks prepared data; it does not repeat the earlier independent Excel-source comparison. Full saved output: `cases/elena/verification/elena-verification-output.txt`.
 
 Run the verification script from the application folder, prof-build-M2. Regardless of the checked-out branch, it reads the frozen prepared CSV stored at commit 208b0375 through git show and requires the SHA-256 verified in the supplied live-dashboard screenshots. It does not read the working-folder CSV or establish the deployed code commit.
 
 ```text
-uv run python ../cases/verification/verify_elena_trends.py
+uv run python ../cases/elena/verification/verify_elena_trends.py
 ```
 
 The calculation and profile-key functions are:

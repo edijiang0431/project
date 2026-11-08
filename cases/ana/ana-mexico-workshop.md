@@ -60,7 +60,7 @@ From the team repo, run:
 
 ```bash
 cd prof-build-M2
-uv run python ../project-dashboard/check_ana_channels.py
+uv run python ../cases/ana/check_ana_channels.py
 ```
 
 Actual output:

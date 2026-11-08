@@ -1,6 +1,6 @@
 """Independent check: standard-library CSV reading and Decimal medians.
 
-Run from prof-build-M2: uv run python ../project-dashboard/check_ana_channels.py
+Run from prof-build-M2: uv run python ../cases/ana/check_ana_channels.py
 Reads prepared quotes; does not import dashboard calculation functions or check Excel cleaning.
 """
 import csv
@@ -8,7 +8,7 @@ from decimal import Decimal
 import gzip
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 groups = {name: [] for name in ('Internet-only', 'Counter-only', 'Mixed', 'Other/unknown')}
 counts = dict.fromkeys(groups, 0)
 excluded = 0

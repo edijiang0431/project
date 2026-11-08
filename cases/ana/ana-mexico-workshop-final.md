@@ -67,14 +67,14 @@ I would keep this feature for that limited purpose and make no additional change
 
 ### Appendix: independent calculation
 
-Complete code for the check summarized in Part 4. Save it as `project-dashboard/check_ana_channels.py`. From the team repo, change into `prof-build-M2`, then run `uv run python ../project-dashboard/check_ana_channels.py`. The script reads prepared data and imports none of the app calculation functions.
+Complete code for the check summarized in Part 4. Save it as `cases/ana/check_ana_channels.py`. From the team repo, change into `prof-build-M2`, then run `uv run python ../cases/ana/check_ana_channels.py`. The script reads prepared data and imports none of the app calculation functions.
 
 ```python
 import csv
 from decimal import Decimal
 import gzip
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 groups = {name: [] for name in ('Internet-only', 'Counter-only', 'Mixed', 'Other/unknown')}
 counts = dict.fromkeys(groups, 0)
 excluded = 0
