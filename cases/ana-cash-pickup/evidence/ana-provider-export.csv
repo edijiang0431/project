@@ -1,0 +1,47 @@
+﻿Service id,Provider,Receiving country,Reporting period,Collection date,Channel category,Total cost (%),Disclosure status,Transfer fee (currency units),Fee currency,FX margin (%),Transfer fee usd,Fx margin usd,Component total usd,Published total usd,Component minus published usd,Breakdown status
+1212256148,Walmart2World,Mexico,2025 Q3,2025-08-28,Internet-only,-2.44,Transparent,0,USD,-2.44,0,-4.88,-4.88,-4.88,0,Available
+1212256111,Wells Fargo,Mexico,2025 Q3,2025-08-21,Counter-only,4.12,Transparent,6,USD,1.12,6,2.24,8.24,8.24,0,Available
+1212256112,Wells Fargo,Mexico,2025 Q3,2025-08-21,Counter-only,4.12,Transparent,6,USD,1.12,6,2.24,8.24,8.24,0,Available
+1212255188,Intermex,Mexico,2025 Q3,2025-08-20,Internet-only,3.77,Transparent,3.99,USD,1.77,3.99,3.54,7.53,7.54,-0.009999999999999787,Available
+1212255189,Intermex,Mexico,2025 Q3,2025-08-20,Internet-only,4.01,Transparent,4.47,USD,1.77,4.47,3.54,8.01,8.02,-0.009999999999999787,Available
+1212256086,Intermex,Mexico,2025 Q3,2025-08-20,Counter-only,4.6,Transparent,5.47,USD,1.86,5.47,3.72,9.19,9.2,-0.009999999999999787,Available
+1212256087,Intermex,Mexico,2025 Q3,2025-08-20,Counter-only,4.6,Transparent,5.47,USD,1.86,5.47,3.72,9.19,9.2,-0.009999999999999787,Available
+1212255417,MoneyGram,Mexico,2025 Q3,2025-08-20,Internet-only,7.02,Transparent,11.99,USD,1.02,11.99,2.04,14.030000000000001,14.04,-0.00999999999999801,Available
+1212255489,MoneyGram,Mexico,2025 Q3,2025-08-20,Internet-only,2.6,Transparent,2.99,USD,1.1,2.99,2.2,5.19,5.2,-0.009999999999999787,Available
+1212255632,MoneyGram,Mexico,2025 Q3,2025-08-20,Internet-only,1.71,Transparent,1.9,USD,0.76,1.9,1.52,3.42,3.42,0,Available
+1212255690,Pangea,Mexico,2025 Q3,2025-08-20,Internet-only,4.23,Transparent,3.95,USD,2.25,3.95,4.5,8.45,8.46,-0.010000000000001563,Available
+1212255651,Remitly,Mexico,2025 Q3,2025-08-20,Internet-only,5.38,Transparent,3.99,USD,3.38,3.99,6.76,10.75,10.76,-0.009999999999999787,Available
+1212255652,Remitly,Mexico,2025 Q3,2025-08-20,Internet-only,8.38,Transparent,9.99,USD,3.38,9.99,6.76,16.75,16.76,-0.010000000000001563,Available
+1212255653,Remitly,Mexico,2025 Q3,2025-08-20,Internet-only,5.38,Transparent,3.99,USD,3.38,3.99,6.76,10.75,10.76,-0.009999999999999787,Available
+1212255156,Ria,Mexico,2025 Q3,2025-08-20,Internet-only,2.24,Transparent,1.99,USD,1.24,1.99,2.48,4.47,4.48,-0.010000000000000675,Available
+1212255415,Ria,Mexico,2025 Q3,2025-08-20,Counter-only,4.31,Transparent,7,USD,0.81,7,1.62,8.620000000000001,8.62,1.7763568394002505e-15,Available
+1212255534,Ria,Mexico,2025 Q3,2025-08-20,Internet-only,2.31,Transparent,3,USD,0.81,3,1.62,4.62,4.62,0,Available
+1212255633,Ria,Mexico,2025 Q3,2025-08-20,Internet-only,6.31,Transparent,11,USD,0.81,11,1.62,12.620000000000001,12.62,1.7763568394002505e-15,Available
+1212255634,Ria,Mexico,2025 Q3,2025-08-20,Internet-only,2.76,Transparent,3.9,USD,0.81,3.9,1.62,5.52,5.52,0,Available
+1212255416,Western Union,Mexico,2025 Q3,2025-08-20,Counter-only,4.9,Transparent,3.99,USD,2.9,3.99,5.8,9.79,9.8,-0.010000000000001563,Available
+1212255418,Western Union,Mexico,2025 Q3,2025-08-20,Internet-only,6.9,Transparent,9.99,USD,1.9,9.99,3.8,13.79,13.8,-0.010000000000001563,Available
+1212255419,Western Union,Mexico,2025 Q3,2025-08-20,Internet-only,6.9,Transparent,9.99,USD,1.9,9.99,3.8,13.79,13.8,-0.010000000000001563,Available
+1212255490,Western Union,Mexico,2025 Q3,2025-08-20,Internet-only,3.9,Transparent,3.99,USD,1.9,3.99,3.8,7.79,7.8,-0.009999999999999787,Available
+1212255595,Western Union,Mexico,2025 Q3,2025-08-20,Internet-only,5.9,Transparent,7.99,USD,1.9,7.99,3.8,11.79,11.8,-0.010000000000001563,Available
+1212255596,Western Union,Mexico,2025 Q3,2025-08-20,Internet-only,5.9,Transparent,7.99,USD,1.9,7.99,3.8,11.79,11.8,-0.010000000000001563,Available
+1212255224,Wise,Mexico,2025 Q3,2025-08-20,Internet-only,1.26,Transparent,2.46,USD,0.0299999999999999,2.46,0.0599999999999998,2.5199999999999996,2.52,-4.440892098500626e-16,Available
+1212255225,Wise,Mexico,2025 Q3,2025-08-20,Internet-only,7.22,Transparent,14.38,USD,0.0299999999999999,14.38,0.0599999999999998,14.440000000000001,14.44,1.7763568394002505e-15,Available
+1212255226,Wise,Mexico,2025 Q3,2025-08-20,Internet-only,2.32,Transparent,4.58,USD,0.0299999999999999,4.58,0.0599999999999998,4.64,4.64,0,Available
+1212256077,Citibank,Mexico,2025 Q3,2025-08-19,Internet-only,17.5,Transparent,35,USD,0,35,0,35,35,0,Available
+1212256007,Viamericas,Mexico,2025 Q3,2025-08-19,Internet-only,3.64,Transparent,3.99,USD,1.64,3.99,3.28,7.27,7.28,-0.010000000000000675,Available
+1212256012,Viamericas,Mexico,2025 Q3,2025-08-19,Internet-only,4.37,Transparent,3.99,USD,2.37,3.99,4.74,8.73,8.74,-0.009999999999999787,Available
+1212256016,Viamericas,Mexico,2025 Q3,2025-08-19,Counter-only,3.33,Transparent,3.99,USD,1.33,3.99,2.66,6.65,6.66,-0.009999999999999787,Available
+1212255995,Vigo,Mexico,2025 Q3,2025-08-18,Counter-only,3.87,Transparent,4.99,USD,1.37,4.99,2.74,7.73,7.74,-0.009999999999999787,Available
+1212256032,Delgado Travel,Mexico,2025 Q3,2025-08-15,Counter-only,4.99,Transparent,6,USD,1.99,6,3.98,9.98,9.98,0,Available
+1212256043,Delgado Travel,Mexico,2025 Q3,2025-08-15,Counter-only,4.99,Transparent,6,USD,1.99,6,3.98,9.98,9.98,0,Available
+1212256050,Delgado Travel,Mexico,2025 Q3,2025-08-15,Counter-only,4.99,Transparent,6,USD,1.99,6,3.98,9.98,9.98,0,Available
+1212256056,Delgado Travel,Mexico,2025 Q3,2025-08-15,Counter-only,4.99,Transparent,6,USD,1.99,6,3.98,9.98,9.98,0,Available
+1212256023,Orlandi Valuta,Mexico,2025 Q3,2025-08-14,Counter-only,6.56,Transparent,10,USD,1.56,10,3.12,13.120000000000001,13.12,1.7763568394002505e-15,Available
+1212255963,Wells Fargo,Mexico,2025 Q3,2025-08-14,Other/unknown,4.73,Transparent,6,USD,1.73,6,3.46,9.46,9.46,0,Available
+1212255965,Wells Fargo,Mexico,2025 Q3,2025-08-14,Other/unknown,4.73,Transparent,6,USD,1.73,6,3.46,9.46,9.46,0,Available
+1212255853,Walmart2World,Mexico,2025 Q3,2025-08-13,Counter-only,10.13,Transparent,14,USD,3.13,14,6.26,20.259999999999998,20.26,-3.552713678800501e-15,Available
+1212255897,Walmart2World,Mexico,2025 Q3,2025-08-13,Counter-only,1.67,Transparent,5.99,USD,-1.33,5.99,-2.66,3.33,3.34,-0.009999999999999787,Available
+1212255911,Walmart2World,Mexico,2025 Q3,2025-08-13,Internet-only,4.73,Transparent,11.99,USD,-1.27,11.99,-2.54,9.45,9.46,-0.010000000000001563,Available
+1212255473,Xoom,Mexico,2025 Q3,2025-08-04,Internet-only,-0.2399999999999999,Transparent,0,USD,-0.2399999999999999,0,-0.47999999999999976,-0.47999999999999976,-0.47999999999999976,0,Available
+1212255597,Xoom,Mexico,2025 Q3,2025-08-04,Internet-only,2.72,Transparent,5.92,USD,-0.2399999999999999,5.92,-0.47999999999999976,5.44,5.44,0,Available
+1212255598,Xoom,Mexico,2025 Q3,2025-08-04,Internet-only,0.39,Transparent,1.25,USD,-0.2399999999999999,1.25,-0.47999999999999976,0.7700000000000002,0.78,-0.009999999999999787,Available

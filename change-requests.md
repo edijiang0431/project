@@ -163,3 +163,12 @@ A filled request (from the class lottery app):
 - **Change:** Add an optional comparison for the selected corridor and quarter using service records with eligible costs at both amounts. Show the paired and excluded counts, estimated costs per $1,000 for both schedules, and the distribution of paired cost differences. Label the estimates as historical and state that the calculation assumes the same quote terms across installments. Keep the existing corridor summaries available.
 - **Priority:** medium
 - **Status:** open
+
+### CR-13: Clarify sender channel versus recipient payout method
+
+- **From:** Yuqian Chen (YuqianC0724), 2026-11-08
+- **Part:** RemitRight LA Streamlit provider evidence table and offline briefing
+- **Evidence:** In the Ana case, the public dashboard was set to Mexico, 2025 Q3, USD 200 and Cost & disclosure. The saved result showed 46 quotes and a 4.485% median. The provider screenshot includes Walmart2World, collected 2025-08-28, labelled Internet-only. The complete 46-row CSV contains channel categories and historical cost components but no recipient payout method, pickup location, arrival time or recipient-ID requirements. Ana needs her mother to collect cash. Internet-only does not establish whether that requirement is met. Existing historical-price and row-order warnings help, but do not explicitly explain this distinction.
+- **Change:** Add a short explanation next to the provider table and in the offline briefing: “Channel category describes how the sender accesses the service, not how the recipient receives the money. Confirm cash pickup, location, identification requirements and current prices with the provider.” Do not infer payout availability from the channel category or add unsupported live-price claims. Keep historical quotes, sorting, scores and calculations unchanged. This also helps researchers interpreting channel comparisons and does not change Elena's historical trend evidence.
+- **Priority:** medium
+- **Status:** open
