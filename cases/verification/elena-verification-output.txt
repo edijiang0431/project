@@ -1,0 +1,83 @@
+RECONSTRUCTED CHECK; no application calculation helpers; prepared data only
+Commit: 208b0375b0816cb4ea05c17f303a6096ddd3024d
+Prepared SHA-256: fe8d6f2921450494ca27ff9503e50e1d24f53934af1bc4bddb02566bac205910
+Mexico records in full available history: 1329
+
+QUARTERS: total eligible nontransparent transparent_missing median_pct
+2024_4Q 46 46 0 0 4.620
+2025_1Q 46 46 0 0 4.715
+2025_2Q 0 0 0 0 Unavailable
+2025_3Q 46 46 0 0 4.485
+2025_2Q rows in complete committed USA data: 0
+
+BASIC MATCH FIELDS: firm, payment_instrument, access_point, pickup_method, cc1_lcu_code, cc1_lcu_amount, cc1_denomination_amount
+Normalization: casefold, collapse whitespace, split comma lists, sort tokens, join with |; no numeric recoding
+Distinct profiles: 2024_4Q=46, 2025_1Q=46, 2025_3Q=46
+Pair matches: 2024_4Q 2025_1Q 46
+Pair matches: 2025_1Q 2025_3Q 43
+Basic profiles common to all three: 43
+COMMON BASIC MEDIANS: period profiles median_pct
+2024_4Q 43 4.610
+2025_1Q 43 4.700
+2025_3Q 43 4.600
+Unmatched Q1 profiles: 3
+Unmatched Q3 profiles: 3
+Q1-only profile: 521252861 moneygram / cash / agent / cash / usd / 200 / 200
+Q1-only profile: 521252614 moneygram / debit card / internet / cash / usd / 200 / 200
+Q1-only profile: 521254713 viamericas / credit card / internet / cash / usd / 200 / 200
+Q3-only profile: 1212255632 moneygram / bank account transfer / internet / bank account / usd / 200 / 200
+Q3-only profile: 1212255489 moneygram / bank account transfer / internet / cash / usd / 200 / 200
+Q3-only profile: 1212255156 ria / debit card / internet / bank account / usd / 200 / 200
+
+STRICT FIELDS: firm, payment_instrument, access_point, pickup_method, cc1_lcu_code, cc1_lcu_amount, cc1_denomination_amount, firm_type, pickup_location, speed_actual, receiving_network_coverage
+Strict profiles common to all three: 31
+Strict median: 2024_4Q 4.610
+Strict median: 2025_1Q 4.590
+Strict median: 2025_3Q 4.370
+
+FULL AVAILABLE HISTORY: period total eligible median_pct
+2016_2Q 22 22 4.670
+2016_3Q 22 22 5.655
+2016_4Q 24 24 4.305
+2017_1Q 26 25 4.760
+2017_2Q 26 26 5.450
+2017_3Q 27 27 4.860
+2017_4Q 28 28 4.440
+2018_1Q 27 27 4.420
+2018_2Q 27 27 3.730
+2018_3Q 27 27 4.230
+2018_4Q 27 27 5.360
+2019_1Q 28 28 4.550
+2019_2Q 28 28 4.465
+2019_3Q 28 28 4.660
+2019_4Q 28 28 4.675
+2020_1Q 28 28 4.350
+2020_2Q 28 28 4.095
+2020_3Q 27 27 4.210
+2020_4Q 26 26 3.910
+2021_1Q 26 26 3.905
+2021_2Q 35 35 4.290
+2021_3Q 42 42 4.280
+2021_4Q 47 47 4.130
+2022_1Q 44 44 4.360
+2022_2Q 45 45 3.700
+2022_3Q 43 43 4.400
+2022_4Q 51 51 4.540
+2023_1Q 51 51 4.400
+2023_2Q 51 51 4.300
+2023_3Q 51 51 4.280
+2023_4Q 51 51 4.300
+2024_1Q 53 53 4.700
+2024_2Q 51 51 4.700
+2024_3Q 46 46 4.485
+2024_4Q 46 46 4.620
+2025_1Q 46 46 4.715
+2025_3Q 46 46 4.485
+
+START SENSITIVITY: start median_pct endpoint_minus_start_percentage_points
+2023_4Q 4.300 0.185
+2024_1Q 4.700 -0.215
+2024_3Q 4.485 0.000
+2024_4Q 4.620 -0.135
+
+Caution: profile matches are not established product identities; this is not a causal decomposition.
