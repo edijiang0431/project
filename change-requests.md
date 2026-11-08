@@ -144,3 +144,12 @@ A filled request (from the class lottery app):
   percentage so small source-rounding differences remain visible rather than silently replaced.
 - **Priority:** medium
 - **Status:** built — local commit `9ae8011`; USD component breakdown, published totals, source-rounding differences, missing components and non-USD fee handling tested. Not deployed.
+
+### CR-11: Show quarterly service composition beside historical trends
+
+- **From:** Nicharee Ratanajaratkul (Prae), 2026-11-07
+- **Part:** Survey quarters view and exported briefing.
+- **Evidence:** The three selected Mexico quarters each contain 46 eligible USD 200 quotes, but separate analysis finds only 43 basic service profiles common across all three. Full-sample and common-profile medians differ.
+- **Change:** Add per-quarter provider and payment/access/payout-category counts beside the cost and coverage evidence. Explain that equal counts do not establish unchanged services. Retain existing medians, expose missing categories and do not automatically assert product matches. This supports other corridors and historical users without changing scores or other users' answers.
+- **Priority:** medium
+- **Status:** open
