@@ -62,7 +62,7 @@ def key_findings(results):
         price += f' {row.non_transparent_quotes} quotes did not disclose the exchange rate.'
         fields = [('relevance_rating','rating'), ('relevance_rationale','rationale'), ('relevance_evidence_source','evidence source'), ('relevance_evidence_date','evidence date')]
         missing = [label for field, label in fields if pd.isna(row[field])]
-        evidence = 'Missing: ' + ', '.join(missing) + '.' if missing else 'Documented rating, rationale, source and date supplied; researcher judgment.'
+        evidence = 'Missing: ' + ', '.join(missing) + '.' if missing else 'Documented input, rationale, source and date supplied; inspect whether this is a researcher rating or an ACS community-size proxy.'
         required = results.metadata.weights.relevance > 0
         next_step = 'Check current provider prices and discuss suitability with the community.'
         if missing:

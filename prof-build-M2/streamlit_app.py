@@ -15,6 +15,7 @@ from src.dashboard_presentation import (
 )
 from src.load_data import load_data, load_preparation_metadata
 from src.load_relevance import load_relevance, validate_relevance
+from src.acs_evidence import ACS_SOURCE, SOURCE_URL, LIMITATION as ACS_LIMITATION, acs_relevance
 from src.rendering import LIMITATIONS, ACCESS_CHECKLIST, fee_distribution_figures
 from src.evidence_summaries import channel_cost_comparison, cost_coverage, key_findings, fee_distribution, service_cost_breakdown
 import matplotlib.pyplot as plt
@@ -23,6 +24,7 @@ from src.period_presets import latest_four_calendar_quarters
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / 'data' / 'rpw_usa_clean.csv.gz'
 EVIDENCE = ROOT / 'inputs' / 'community_relevance.csv'
+ACS_EVIDENCE = ROOT / 'inputs' / 'acs_b05006_la.csv'
 
 
 def table(data, provider=False):
@@ -60,13 +62,24 @@ def table(data, provider=False):
 
 def evidence_controls(session):
     with st.sidebar.expander('Community evidence', expanded=False):
-        st.caption('Use the project CSV or upload a CSV. Loading does not overwrite files. Ratings are researcher judgments, never inferred.')
+        st.caption('Choose documented researcher ratings or the optional ACS community-size proxy. Loading does not overwrite files. Population is not a measure of remittance activity or community need.')
         st.download_button('Download community CSV template', ','.join(RELEVANCE) + '\n', file_name='community_relevance_template.csv', mime='text/csv', key='evidence_template', on_click='ignore')
         st.caption('Required columns: destination_code, relevance_rating, rationale, evidence_source, evidence_date. Ratings: 0 to 5; dates: YYYY-MM-DD.')
-        source = st.radio('Evidence source', ['Project CSV', 'Upload CSV', 'No community evidence'], key='evidence_source')
+        source = st.radio('Evidence source', ['Project CSV', ACS_SOURCE, 'Upload CSV', 'No community evidence'], key='evidence_source')
         upload = st.file_uploader('Community evidence CSV', type=['csv'], key='evidence_upload') if source == 'Upload CSV' else None
         try:
-            if source == 'Project CSV':
+            if source == ACS_SOURCE:
+                raw = ACS_EVIDENCE.read_bytes()
+                token = (source, sha256(raw).hexdigest())
+                details = pd.read_csv(BytesIO(raw))
+                st.caption(ACS_LIMITATION)
+                st.markdown(f'[US Census Bureau: ACS 2024 5-year, Table B05006]({SOURCE_URL})')
+                st.caption('Scoring rule: rating = 5 × country estimate / ALL county foreign-born residents. The composite divides by 5, so its community input is that population share. This is a design choice, not a Census rating. Evidence date is retrieval date; the survey covers 2020–2024. Uncertainty is shown but is not propagated into the score.')
+                if details.margin_of_error.ge(details.population_estimate).any():
+                    st.warning('Some population estimates have a margin of error as large as or larger than the estimate. Their small differences do not provide firm evidence for ranking communities; review the uncertainty before using the score.')
+                st.dataframe(details[['destination_name', 'acs_category', 'population_estimate', 'margin_of_error', 'county_foreign_born_total', 'county_total_margin_of_error', 'match_status']], hide_index=True)
+                st.download_button('Download ACS evidence details', raw, file_name=ACS_EVIDENCE.name, mime='text/csv', key='acs_details', on_click='ignore')
+            elif source == 'Project CSV':
                 exists = EVIDENCE.exists()
                 raw = EVIDENCE.read_bytes() if exists else b''
                 token = (source, sha256(raw).hexdigest() if exists else 'missing')
@@ -107,8 +120,12 @@ def evidence_controls(session):
             try:
                 if raw is None:
                     raise ValueError('Choose a CSV file first.')
-                rel = (load_relevance(EVIDENCE, set(session.quotes.destination_code)) if source == 'Project CSV'
-                       else validate_relevance(pd.read_csv(BytesIO(raw), dtype=str, keep_default_na=False), set(session.quotes.destination_code)))
+                if source == ACS_SOURCE:
+                    rel = acs_relevance(pd.read_csv(BytesIO(raw)), set(session.quotes.destination_code))
+                elif source == 'Project CSV':
+                    rel = load_relevance(EVIDENCE, set(session.quotes.destination_code))
+                else:
+                    rel = validate_relevance(pd.read_csv(BytesIO(raw), dtype=str, keep_default_na=False), set(session.quotes.destination_code))
                 st.session_state.relevance = rel
                 st.session_state.evidence_token = token
                 st.session_state.evidence_error = None
@@ -318,7 +335,7 @@ def show_results(results):
     with st.expander('Methodology and score interpretation'):
         st.write(POOLING)
         st.write(DIRECTION)
-        st.write('Cost normalization uses a shared reference of all available USA-origin corridors for the selected periods and basket. Country display filters do not change the bounds; periods, basket and data version can. Disclosure is the fraction flagged non-transparent. Community relevance uses the documented 0-5 input divided by 5; no ratings are inferred.')
+        st.write('Cost normalization uses a shared reference of all available USA-origin corridors for the selected periods and basket. Country display filters do not change the bounds; periods, basket and data version can. Disclosure is the fraction flagged non-transparent. Community relevance uses the documented 0-5 input divided by 5. Researcher ratings and the optional ACS population-share proxy are different evidence sources; see the applied snapshot for the source and scoring rule. Neither measures actual remittance participation.')
         st.write({'Cost reference': vars(m.cost_reference) if m.cost_reference is not None else None, 'Data version (prepared SHA-256)': m.preparation.prepared_sha256})
     with st.expander('Historical-data limitations and attribution'):
         st.write(LIMITATIONS)
@@ -396,7 +413,7 @@ def main():
         st.caption(f'Applicable weights: cost {cost:.12g}; disclosure {disclosure:.12g}' + (f'; community {relevance:.12g}' if mode == COMMUNITY_MODE else '; community excluded'))
         if mode == COST_MODE:
             st.caption('No community evidence is required for this score. Optional valid evidence remains available separately.')
-        st.caption('Community CSV: download the header-only template below, fill its five existing fields, upload and Load, then Update. No ratings are inferred.')
+        st.caption('Optional community evidence: choose ACS community-size proxy below, Load community evidence, then Update analysis; or upload documented researcher ratings using the CSV template.')
     evidence_ready = evidence_controls(session)
     args = (selected_periods, destinations, amount, ScoringWeights(cost, disclosure, relevance), st.session_state.relevance)
     with action:
