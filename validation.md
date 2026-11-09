@@ -1,69 +1,3 @@
-**INCOMPLETE TEAM REVIEW DRAFT - Section 3 is integrated; Section 4 (Tests) still awaits the team contribution.**
-
-<!--
-INTERNAL TEAM REVIEW - Not submission prose; excluded from rendered output.
-
-Criterion 5: Design evidence still to resolve
-* Confirm the team's primary use is historical investigation and message preparation;
-  final campaign priorities require outside evidence and staff judgment. The original
-  ambition was broader, and the difficult consumer cases are not all primary users.
-* Research supports relevant activities, not the exact illustrative workflows.
-  No interviews, adoption study, measured time/decision-quality benefit or verified
-  organizational selection/publication procedure is supplied.
-* Scoring weights are project choices, not validated user preferences. None of the
-  submitted cases demonstrates live ACS-mode use or validates its outreach usefulness.
-  Population context is not measured remittance use, attendance, need or benefit.
-* Repository records do not explain why KNOMAD integration was omitted or the
-  researcher-rating rubric postponed. Do not invent omission rationales.
-* Current live acceptance and deployed code commit remain unverified by this review;
-  code, local tests and a matching data fingerprint cannot establish deployment.
-
-Criteria 6 and 7: Case coverage, fidelity and remaining evidence gaps
-* Confirm coverage of the main research/education users and difficult decisions;
-  five cases alone do not establish coverage of all important users or needs.
-  Do not turn illustrative scenarios into actual assignments, deadlines or procedures.
-* Screenshots are retained from submitted cases, not a new live session. Some source
-  screenshots are cropped or partial. Retain their dates, stated selections, captions,
-  tables and cropping qualifications; do not infer missing settings or redraw evidence.
-  Extraction cannot recover content outside the original visible crop.
-* Lea's original separate paired-basket script/output was not supplied with her case.
-  Section 3 now independently reproduces its reported paired counts and median difference
-  with verification/check_mvp_numbers.py. Her case text remains unchanged.
-* The IFAD case's working memo and provider-level prepared-CSV investigation are
-  unavailable. Its additional provider composition/payout evidence and CR-14 counts
-  are not newly reproduced. Filing a request is not implementation evidence.
-* Editorial renumbering: Jiayi's provider-breadth request uses shared-log CR-14,
-  avoiding Elena's existing quarterly-composition CR-11. The author has corrected
-  both occurrences in the individual PDF, including its historical preparation-status
-  sentence, and renamed it Jiayi_Liu_Module11_Individual_Case_CR-14.pdf. The combined
-  case also uses CR-14.
-  CR-14 is open; its source did not specify priority, which the team must assign if needed.
-* Preserve individual verdicts and qualifications. Historical results do not establish
-  consumer savings, improved affordability, policy effects, transaction weights or
-  identical products. Positive case assessments are task arguments, not measured
-  benefits or proof of universal superiority over alternatives.
-
-Completion and reproducibility
-* Section 3 (Numbers) now includes measure definitions, populations, independent checks,
-  source-version limits and discrepancy resolutions, plus two fresh live screenshots.
-  Section 4 (Tests) remains incomplete: explain tested properties, worked examples,
-  additions beyond the starting build, results and remaining risks.
-* Preserve existing request statuses; undated deployment statements are not fresh
-  acceptance evidence. The authoritative ledger is root change-requests.md;
-  MVP_CHANGE_REQUESTS.md is implementation documentation and prof-build-M2/change-requests.md
-  is the original build template. Supporting logs are not replacements for the ledger.
-* External source URLs are retained, not all freshly availability-checked. Local targets
-  are checked. PDF extraction provenance and prior preservation/visual checks remain in
-  validation-draft-assets/extraction-map.json and preservation-check.json. The latter
-  describes the earlier assembly, not a newly generated PDF or the latest Section 1.
-* build_validation_draft.py reads validation.md and omits block HTML, including this
-  review. Keep its assets. The authoring environment uses ReportLab, Mistune, pypdf,
-  PDFium and Windows Calibri/Consolas fonts; review packages are in temporary PDF tooling.
-  A fresh machine may need that environment; application dependencies are unchanged.
-* Complete and review Sections 3 and 4 before making a final validation.pdf. No PDF is
-  regenerated during this consolidation. validation.md is the single editable master.
--->
-
 # Introduction
 
 RemitRight LA supports outreach researchers and consumer educators investigating the cost of sending money from the United States to other countries. Our original ambition was to support campaign research and planning: identifying a corridor and a price issue worth explaining to a community. The contribution supported by our cases is more specific: investigating historical price concerns, preparing qualified educational or advocacy messages, and identifying questions for further research. Final campaign priorities require outside evidence and staff judgment. This scope develops the project's [original vision](00-vision.md) without treating a cost ranking as a complete decision rule.
@@ -811,4 +745,16 @@ This verifies arithmetic on the specified prepared-data version and selections. 
 
 # 4. Tests
 
-**DRAFT INSERTION POINT - team contribution required.** Summarize tested properties, hand-worked examples, independent checks and additions beyond the starting build, with evidence and remaining gaps. This section is incomplete.
+RemitRight LA tests the steps that can change a researcher’s conclusion: selecting the right quotes, calculating costs and scores, and exporting the results from the settings that produced them.
+
+| What the tests protect | Evidence from the tests | Why it matters |
+| --- | --- | --- |
+| Results reflect the selected quarter, destinations and transfer amount. | In a hand-calculated dashboard example, switching from $200 to $500 changes Mexico’s median from 3% to 14% and India’s from 9% to 5%, reversing their cost-and-disclosure scores. The calculation tests also check that the selected basket is used across the result tables. A notebook workflow test checks that the selected quarter and destination reach the calculation. A second dashboard example changes quotes outside the selected quarter and in a hidden corridor. The displayed counts and medians stay fixed, and the shared normalization bounds use the hidden corridor’s selected-quarter quote. | A researcher can change the basket or the countries shown without confusing which quotes contribute to a result or how the relative scores are scaled. |
+| Cost medians and eligible counts use the right quotes. | An independent calculation from the prepared World Bank CSV checks Mexico’s latest-quarter counts and medians for both transfer amounts and verifies the service IDs in the detail table. A separate CSV cross-check recomputes channel counts and medians for the $200 basket. A small example checks that opaque and other-channel quotes do not enter the Internet-only median. | Incorrect counts or channel classifications could change which costs a researcher highlights in a briefing. |
+| Edge cases preserve the meaning of the evidence. | A hand-calculated example keeps negative costs in the details and yields corridor medians of −4%, −1% and 2%. Repository tests also check that missing survey quarters remain gaps and that zero fees and missing costs are handled separately. | Dropping negative costs or filling gaps can distort historical comparisons. |
+| Provider evidence can be searched and sorted without changing the source rows. | Search treats punctuation in provider names as literal text. Tests check numeric sorting by total cost, transfer fee and exchange-rate margin in both directions, with missing values last. | Researchers can find and compare quotes without confusing a missing value with a low price. |
+| Exports reflect the applied analysis and include its evidence. | Repository tests check that changing settings blocks export until analysis is rerun, that exports include all provider rows even when the preview is limited, and that ACS evidence carries its source and calculation into the briefing. | Readers can trace a saved briefing back to the settings and evidence used to generate it. |
+
+The team extended the starting build with dashboard checks for basket switching and selection scope, independent cross-checks on real data, provider search and sorting checks, and tests for the later shared normalization, channel comparisons, and ACS evidence. For the selection test, we updated the original expected values to match the documented shared reference in CR-04. A hidden corridor in the selected quarter can change the reference bounds, while its quotes stay out of the displayed corridor’s median and count.
+
+We ran the current team snapshot (commit 8220045) with the locked dependencies on Python 3.14.10 in UTF-8 mode. All ten selected Module 10 checks across the five individual reports passed in 5.11 seconds. Four of those checks were already present in the team snapshot and were run once. The full run included the six checks restored from the reports and reported 127 passing tests in 33.23 seconds. The real-data cross-checks start from the prepared CSV, so they verify the analysis of those records. Workbook preparation and current provider prices are outside the scope of those cross-checks.
