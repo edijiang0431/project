@@ -1,0 +1,242 @@
+[
+  {
+    "source": "cases/lea/case-lea-remittance.pdf",
+    "source_page": 2,
+    "image_object": "/FormXob.e4a4157f36f251ffbde3ff3e0a534146",
+    "image_bbox": [
+      46.0,
+      520.7182,
+      566.0,
+      618.99999
+    ],
+    "visible_pdf_bbox": [
+      46.0,
+      520.7182,
+      566.0,
+      618.99999
+    ],
+    "original_pixel_crop": [
+      0,
+      0,
+      582,
+      110
+    ],
+    "asset": "validation-draft-assets/lea-source-page-2-visible-1.png"
+  },
+  {
+    "source": "cases/lea/case-lea-remittance.pdf",
+    "source_page": 2,
+    "image_object": "/FormXob.34fad6da1d66932e79f7d63653e1154a",
+    "image_bbox": [
+      46.0,
+      377.7148,
+      566.0,
+      486.7182
+    ],
+    "visible_pdf_bbox": [
+      46.0,
+      377.7148,
+      566.0,
+      486.7182
+    ],
+    "original_pixel_crop": [
+      0,
+      0,
+      582,
+      122
+    ],
+    "asset": "validation-draft-assets/lea-source-page-2-visible-2.png"
+  },
+  {
+    "source": "cases/lea/case-lea-remittance.pdf",
+    "source_page": 2,
+    "image_object": "/FormXob.d15b6478bb54d2af1d226098c2e67786",
+    "image_bbox": [
+      46.0,
+      234.7113,
+      566.0,
+      343.7147
+    ],
+    "visible_pdf_bbox": [
+      46.0,
+      234.7113,
+      566.0,
+      343.7147
+    ],
+    "original_pixel_crop": [
+      0,
+      0,
+      582,
+      122
+    ],
+    "asset": "validation-draft-assets/lea-source-page-2-visible-3.png"
+  },
+  {
+    "source": "cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf",
+    "source_page": 3,
+    "image_object": "/FormXob.6828729032b26287d68100cd98a8dba2",
+    "image_bbox": [
+      50.94488,
+      101.22017,
+      790.94488,
+      508.07567
+    ],
+    "visible_pdf_bbox": [
+      50.94488,
+      168.4272,
+      790.94488,
+      508.0756
+    ],
+    "original_pixel_crop": [
+      0,
+      0,
+      2048,
+      940
+    ],
+    "asset": "validation-draft-assets/jiayi-source-page-3-visible-1.png"
+  },
+  {
+    "source": "cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf",
+    "source_page": 3,
+    "image_object": "/FormXob.79593c4367d9a918f25dc71d71f2515c",
+    "image_bbox": [
+      26.814449999999997,
+      -332.06412,
+      850.46665,
+      211.67498
+    ],
+    "visible_pdf_bbox": [
+      50.94488,
+      43.56628,
+      790.94488,
+      147.32718
+    ],
+    "original_pixel_crop": [
+      60,
+      160,
+      1900,
+      418
+    ],
+    "asset": "validation-draft-assets/jiayi-source-page-3-visible-2.png"
+  },
+  {
+    "source": "cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf",
+    "source_page": 4,
+    "image_object": "/FormXob.5ef469d4c0d951b08d6369cb47667087",
+    "image_bbox": [
+      14.242179999999998,
+      -14.47580000000002,
+      855.58268,
+      538.8864
+    ],
+    "visible_pdf_bbox": [
+      40.94488,
+      148.6161,
+      800.94488,
+      508.0756
+    ],
+    "original_pixel_crop": [
+      65,
+      75,
+      1915,
+      950
+    ],
+    "asset": "validation-draft-assets/jiayi-source-page-4-visible-1.png"
+  },
+  {
+    "source": "cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf",
+    "source_page": 5,
+    "image_object": "/FormXob.b3712b2445b4cf3e369b2f320219a93e",
+    "image_bbox": [
+      102.44236,
+      -73.10210000000001,
+      1079.66066,
+      537.6593
+    ],
+    "visible_pdf_bbox": [
+      185.9449,
+      480.8776,
+      655.9449,
+      508.07556999999997
+    ],
+    "original_pixel_crop": [
+      175,
+      62,
+      1160,
+      119
+    ],
+    "asset": "validation-draft-assets/jiayi-source-page-5-visible-1.png"
+  },
+  {
+    "source": "cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf",
+    "source_page": 5,
+    "image_object": "/FormXob.b3712b2445b4cf3e369b2f320219a93e",
+    "image_bbox": [
+      45.94488,
+      49.723776,
+      833.6371800000001,
+      542.031476
+    ],
+    "visible_pdf_bbox": [
+      45.94488,
+      53.56993,
+      795.94488,
+      475.87763
+    ],
+    "original_pixel_crop": [
+      0,
+      172,
+      1950,
+      1270
+    ],
+    "asset": "validation-draft-assets/jiayi-source-page-5-visible-2.png"
+  },
+  {
+    "source": "cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf",
+    "source_page": 6,
+    "image_object": "/FormXob.3b0e86b025e4d50bef2b3e505212a8a5",
+    "image_bbox": [
+      102.44236,
+      -73.10210000000001,
+      1079.66066,
+      537.6593
+    ],
+    "visible_pdf_bbox": [
+      185.9449,
+      480.8776,
+      655.9449,
+      508.07556999999997
+    ],
+    "original_pixel_crop": [
+      175,
+      62,
+      1160,
+      119
+    ],
+    "asset": "validation-draft-assets/jiayi-source-page-6-visible-1.png"
+  },
+  {
+    "source": "cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf",
+    "source_page": 6,
+    "image_object": "/FormXob.3b0e86b025e4d50bef2b3e505212a8a5",
+    "image_bbox": [
+      45.94488,
+      49.723769999999995,
+      833.6371800000001,
+      542.03147
+    ],
+    "visible_pdf_bbox": [
+      45.94488,
+      73.95454,
+      795.94488,
+      475.87764
+    ],
+    "original_pixel_crop": [
+      0,
+      172,
+      1950,
+      1217
+    ],
+    "asset": "validation-draft-assets/jiayi-source-page-6-visible-2.png"
+  }
+]

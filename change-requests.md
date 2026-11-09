@@ -172,3 +172,14 @@ A filled request (from the class lottery app):
 - **Change:** Add a short explanation next to the provider table and in the offline briefing: “Channel category describes how the sender accesses the service, not how the recipient receives the money. Confirm cash pickup, location, identification requirements and current prices with the provider.” Do not infer payout availability from the channel category or add unsupported live-price claims. Keep historical quotes, sorting, scores and calculations unchanged. This also helps researchers interpreting channel comparisons and does not change Elena's historical trend evidence.
 - **Priority:** medium
 - **Status:** open
+
+### CR-14: Show provider breadth beside corridor results
+
+- **From:** Jiayi Liu, 2026-11-08 (proposal in individual case dated 2026-11-07).
+- **Part:** Corridor results and exported briefings.
+- **Evidence:** In the IFAD research-priority case, USA origin, all 42 receiving countries, 2025 Q3, USD 200 and Cost & disclosure were selected. The case reports six eligible Afghanistan quotes from three recorded provider names: MoneyGram (3), Western Union (2) and Walmart2World (1). Provider-name counts came from a separate prepared-CSV check, not the comparison screenshot. These details describe sample composition, not customer use or market shares.
+- **Change:** Show distinct recorded provider-name counts and the largest provider's count/share of eligible quotes beside each corridor and in exported briefings. For the case's Afghanistan sample, show three names and MoneyGram's 3/6 (50%). Label these as sample composition, not market shares; retain existing costs and scores. The case counts recorded provider names without consolidating related companies. This helps researchers and advocacy writers judge the evidence, but does not supply the additional information needed to choose one research-priority corridor.
+- **Priority:** Not specified in the source case; team to assign.
+- **Status:** open
+- **ID reconciliation:** The source case calls this proposal CR-11, conflicting with the existing quarterly service-composition request. CR-14 is its shared-log ID. The original case files are unchanged.
+- **Source:** cases/jiayi/Jiayi_Liu_Module11_Individual_Case.pdf, pages 1-2. The separate prepared-CSV check referenced there is not included in the shared submission; this entry records the case evidence without claiming independent reproduction or implementation.
