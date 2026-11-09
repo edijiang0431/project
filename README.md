@@ -8,6 +8,8 @@ The complete tested version is on `feature/mvp-change-requests`, with entrypoint
 
 [Open the live RemitRight LA dashboard](https://project-c2b8ykvnwmkqm8o59iqymy.streamlit.app/).
 
+[Watch the team MVP demo](https://youtu.be/x__LZbNajSw).
+
 [Download the team MVP validation report](validation.pdf).
 
 ## Run on a laptop
