@@ -1,6 +1,6 @@
 # Individual case submissions
 
-- Jiayi Liu: [submitted PDF](jiayi/Jiayi_Liu_Module11_Individual_Case.pdf).
+- Jiayi Liu: [submitted PDF](jiayi/Jiayi_Liu_Module11_Individual_Case_CR-14.pdf).
 - Elena: [memo](elena/elena-remittance-trends-final.md), [submitted PDF](elena/elena-remittance-trends.pdf), screenshots and verification/export files in `elena/`.
 - Ana: [memo](ana/ana-mexico-workshop-final.md), [submitted PDF](ana/case-ana-mexico-workshop.pdf), screenshots and verification script in `ana/`.
 

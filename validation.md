@@ -32,10 +32,11 @@ Criteria 6 and 7: Case coverage, fidelity and remaining evidence gaps
 * The IFAD case's working memo and provider-level prepared-CSV investigation are
   unavailable. Its additional provider composition/payout evidence and CR-14 counts
   are not newly reproduced. Filing a request is not implementation evidence.
-* Editorial renumbering: Jiayi's original PDF uses CR-11 for provider breadth, which
-  conflicts with Elena's existing quarterly-composition CR-11. Only the combined case
-  uses shared-log CR-14, including its historical preparation-status sentence. The
-  original PDF is unchanged and still needs its author's coordinated correction.
+* Editorial renumbering: Jiayi's provider-breadth request uses shared-log CR-14,
+  avoiding Elena's existing quarterly-composition CR-11. The author has corrected
+  both occurrences in the individual PDF, including its historical preparation-status
+  sentence, and renamed it Jiayi_Liu_Module11_Individual_Case_CR-14.pdf. The combined
+  case also uses CR-14.
   CR-14 is open; its source did not specify priority, which the team must assign if needed.
 * Preserve individual verdicts and qualifications. Historical results do not establish
   consumer savings, improved affordability, policy effects, transaction weights or
