@@ -1,0 +1,9 @@
+Code commit: 82200456fc44746f38ee354ac33142bc0255b023
+Prepared SHA-256: fe8d6f2921450494ca27ff9503e50e1d24f53934af1bc4bddb02566bac205910
+Prepared rows / unique IDs / periods / corridors: 29542 / 29542 / 37 / 42
+Latest-quarter quotes: 1010
+Numeric and state comparisons: 20194; failures: 0
+ACS matched countries: 41; Mexico population share: 34.803171406%; community score: 0.244306914
+Philippines paired: {'pairs': 57, 'favors_two': 50, 'ties': 6, 'favors_five': 1, 'median_difference_usd': '13.1000000000000000'}
+Common Mexico basic profiles: 43; medians: {'2024_4Q': '4.6100000000000003', '2025_1Q': '4.7000000000000002', '2025_3Q': '4.5999999999999996'}
+Scope: independent expectations use the prepared CSV and saved official ACS source; not a new workbook extraction, live-price check or evaluation of campaign suitability.
