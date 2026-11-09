@@ -6,7 +6,9 @@ An interactive Streamlit dashboard for CHIRLA campaign researchers comparing his
 
 The complete tested version is on `feature/mvp-change-requests`, with entrypoint `prof-build-M2/streamlit_app.py`. Cost & disclosure is the default; documented community-informed scoring is optional. No community ratings are invented.
 
-The code is ready for Streamlit Community Cloud, but no public dashboard URL has been verified yet. Deployment is waiting for an authorized Streamlit sign-in and repository access. The live link must be added here after deployment, then verified without signing in. The team demo-video link and root `validation.pdf` are also required for the final MVP submission and are not supplied by this deployment preparation.
+[Open the live RemitRight LA dashboard](https://project-c2b8ykvnwmkqm8o59iqymy.streamlit.app/).
+
+[Download the team MVP validation report](validation.pdf).
 
 ## Run on a laptop
 
