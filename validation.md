@@ -268,15 +268,15 @@ There are no Mixed quotes. All 46 quotes are eligible, with an overall median of
 
 **Live-app evidence: channel comparison and access questions**
 
-![Live channel table with Mexico, Q3 2025 and USD 200 selections](cases/ana/screenshots/ana-channels-readable.png)
+![Live channel table with Mexico, Q3 2025 and USD 200 selections](verification/screenshots/r41/case-2.2-figure-1.png)
 
-*Figure 1. All columns of the live channel table, arranged in two panels with channel labels repeated for readability. The selections above the table show Mexico, Q3 2025 and USD 200; the mode is Cost & disclosure.*
+*Figure 1. Public-app channel table recaptured on November 22, 2026. Selected controls show Mexico, 2025 Q3, USD 200 and Cost & disclosure; all channel-table columns are visible.*
 
-![Live internet-access checklist and channel table](cases/ana/screenshots/ana-access-readable.png)
+![Live internet-access checklist and channel table](verification/screenshots/r41/case-2.2-figure-2.png)
 
-*Figure 2. The checklist asks about reliable internet, a trusted device and secure connection, and payment, identification and recipient requirements. The app does not infer or store participants' answers.*
+*Figure 2. The checklist asks about reliable internet, a trusted device and secure connection, and payment, identification and recipient requirements. The app does not infer or store participants' answers. Recaptured November 22, 2026 with selected controls visible.*
 
-Both figures use genuine public-app screenshots, cropped and arranged for readability. Original captures are retained; no values or wording were changed.
+Both figures were recaptured from the public app on November 22, 2026 with selected controls visible. Original captures are retained; no app values or wording were changed.
 
 
 
@@ -410,11 +410,11 @@ An alternative is a provider's current estimator and agent locator. Western Unio
 
 **Provider evidence, left-hand columns:** Same saved analysis: Mexico, 2025 Q3, USD 200, Cost & disclosure. The screenshot shows provider identity, historical collection date, sender channel, total cost and disclosure status. It is a partial view of the 46-row export.
 
-![Historical Mexico provider quotes: identity, date, channel and cost](cases/ana-cash-pickup/screenshots/ana-provider-left.png)
+![Historical Mexico provider quotes: identity, date, channel and cost](verification/screenshots/r41/case-2.3-provider-left.png)
 
-**Provider evidence, right-hand columns:** The horizontally scrolled view shows FX margin and dollar cost breakdowns. Provider names are offscreen in this image; use the left view and preserved CSV for row identity. The first currency header is clipped, so currency should be checked in the full export rather than inferred from the cropped text.
+**Provider evidence, right-hand columns:** The horizontally scrolled view shows FX margin and dollar cost breakdowns, with selected controls retained. Provider names are offscreen; use the left view and preserved CSV for row identity. The leftmost column header is truncated. Check the complete export to verify that column; do not infer its meaning from the clipped header.
 
-![Historical provider quote FX margins and dollar breakdowns](cases/ana-cash-pickup/screenshots/ana-provider-right.png)
+![Historical provider quote FX margins and dollar breakdowns](verification/screenshots/r41/case-2.3-provider-right.png)
 
 **What they see:** The saved live result shows a 4.485% median quoted cost, 46 eligible costs from 46 quotes and zero quotes flagged for not disclosing the exchange rate. The overview explicitly warns that these are historical sampled quotes. The provider views retain collection dates and cost components; the complete export is preserved in `cases/ana-cash-pickup/evidence/ana-provider-export.csv`.
 
@@ -486,17 +486,17 @@ Lea can ask her family when the funds need to arrive and which deposit or pickup
 
 Open [RemitRight LA](https://project-c2b8ykvnwmkqm8o59iqymy.streamlit.app/). Select Philippines, 2025 Q3 and Cost & disclosure. Run Update analysis at USD 200, then change only the transfer amount to USD 500 and run Update analysis again.
 
-![Lea live-app Figure 1](validation-draft-assets/lea-source-page-2-visible-1.png)
+![Lea live-app Figure 1](verification/screenshots/r41/case-2.4-figure-1.png)
 
-*Figure 1. Saved analysis confirms the route, quarter and $500 basket.*
+*Figure 1. Saved analysis confirms the route, quarter and $500 basket. Recaptured November 22, 2026 with selected controls visible.*
 
-![Lea live-app Figure 2](validation-draft-assets/lea-source-page-2-visible-2.png)
+![Lea live-app Figure 2](verification/screenshots/r41/case-2.4-figure-2.png)
 
-*Figure 2. $200 basket: 3.960% median across 58 eligible quotes.*
+*Figure 2. $200 basket: 3.960% median across 58 eligible quotes. Recaptured November 22, 2026 with selected controls visible.*
 
-![Lea live-app Figure 3](validation-draft-assets/lea-source-page-2-visible-3.png)
+![Lea live-app Figure 3](verification/screenshots/r41/case-2.4-figure-1.png)
 
-*Figure 3. $500 basket: 2.860% median across 57 eligible quotes.*
+*Figure 3. $500 basket: 2.860% median across 57 eligible quotes. Recaptured November 22, 2026 with selected controls visible.*
 
 The two runs each found 58 historical service records. Both reported zero quotes flagged for exchange-rate nondisclosure. The $500 cost median uses one fewer record. Screenshots are cropped from the live app to show the saved settings and the cost findings.
 
@@ -576,15 +576,15 @@ Both official pages were checked on November 7, 2026. Additional provider-level 
 
 ![IFAD research case evidence from source page 3](validation-draft-assets/jiayi-source-page-3-visible-1.png)
 
-*Figure 1. Executed settings and existing guidance USA to all 42 receiving countries | 2025 Q3 | USD 200 | Cost & disclosure. The saved run shows the applied two-thirds/one-third weights. The lower excerpt is the Afghanistan guidance panel from the same run. Afghanistan guidance excerpt: missing community inputs are optional in this mode; the app recommends current-price and community checks.*
+*Figure 1. Original executed-settings view: USA to all 42 receiving countries | 2025 Q3 | USD 200 | Cost & disclosure, with applied two-thirds/one-third weights. The separate guidance view below was recaptured on November 22, 2026 with the same selections.*
 
-![IFAD research case evidence from source page 3](validation-draft-assets/jiayi-source-page-3-visible-2.png)
+![IFAD public-app Afghanistan guidance with selected controls visible](verification/screenshots/r41/case-2.5-figure-1-guidance.png)
 
-*Figure 1. Executed settings and existing guidance USA to all 42 receiving countries | 2025 Q3 | USD 200 | Cost & disclosure. The saved run shows the applied two-thirds/one-third weights. The lower excerpt is the Afghanistan guidance panel from the same run. Afghanistan guidance excerpt: missing community inputs are optional in this mode; the app recommends current-price and community checks.*
+*Figure 1 (guidance). Public-app view recaptured on November 22, 2026: USA to all 42 receiving countries, 2025 Q3, USD 200, Cost & disclosure. Selected controls and Afghanistan guidance are visible together. Missing community inputs are optional in this mode; current-price and community checks remain necessary.*
 
-![IFAD research case evidence from source page 4](validation-draft-assets/jiayi-source-page-4-visible-1.png)
+![IFAD public-app corridor comparison with selected controls visible](verification/screenshots/r41/case-2.5-figure-2.png)
 
-*Figure 2. Highest corridor medians in the public run Same executed settings as Figure 1. The view reports 1,010 eligible quotes and zero non-transparent quotes. This excerpt preserves the five highest corridor rows; it is not the complete 42-country table. Reading: Afghanistan is 8.875% from six quotes; Cuba is 7.750% from four; Bangladesh is 7.525% from 24. These are descriptive results for sampled services, not transaction-weighted market costs or a research-priority rule.*
+*Figure 2. Highest corridor medians in the public run. Same executed settings as Figure 1. The view reports 1,010 eligible quotes and zero non-transparent quotes. This screenshot shows the top portion of the corridor table, including the five highest-cost corridors and additional rows; it is not the complete 42-country table. Reading: Afghanistan is 8.875% from six quotes; Cuba is 7.750% from four; Bangladesh is 7.525% from 24. These are descriptive results for sampled services, not transaction-weighted market costs or a research-priority rule. Recaptured November 22, 2026 with selected controls visible.*
 
 ![IFAD research case evidence from source page 5](validation-draft-assets/jiayi-source-page-5-visible-1.png)
 
