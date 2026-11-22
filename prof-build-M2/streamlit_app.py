@@ -16,7 +16,7 @@ from src.dashboard_presentation import (
 from src.load_data import load_data, load_preparation_metadata
 from src.load_relevance import load_relevance, validate_relevance
 from src.acs_evidence import ACS_SOURCE, SOURCE_URL, LIMITATION as ACS_LIMITATION, acs_relevance
-from src.rendering import LIMITATIONS, ACCESS_CHECKLIST, fee_distribution_figures
+from src.rendering import LIMITATIONS, ACCESS_CHECKLIST, PAYOUT_NOTE, fee_distribution_figures
 from src.evidence_summaries import channel_cost_comparison, cost_coverage, key_findings, fee_distribution, service_cost_breakdown
 import matplotlib.pyplot as plt
 from src.period_presets import latest_four_calendar_quarters
@@ -55,6 +55,7 @@ def table(data, provider=False):
         'total_cost_pct': 'Total cost (%)',
         'exchange_rate_margin': 'FX margin (%)',
         'transfer_fee': 'Transfer fee (currency units)',
+        'pickup_method': 'Recipient payout method',
     }
     out = out.rename(columns={c: labels.get(c, c.replace('_', ' ').capitalize()) for c in out})
     st.dataframe(out, hide_index=True, width='stretch')
@@ -177,12 +178,13 @@ def provider_table(rows):
     out['reporting_period'] = out.reporting_period.map(quarter_label)
     out['collection_date'] = out.collection_date.dt.strftime('%Y-%m-%d')
     out['disclosure_status'] = out.transparent.map({'yes': 'Transparent', 'no': 'Flagged non-transparent'})
-    visible = ['service_id', 'provider', 'receiving_country', 'reporting_period', 'collection_date', 'channel_category', 'total_cost_pct', 'disclosure_status', 'transfer_fee', 'fee_currency', 'exchange_rate_margin', 'transfer_fee_usd', 'fx_margin_usd', 'component_total_usd', 'published_total_usd', 'component_minus_published_usd', 'breakdown_status']
+    visible = ['service_id', 'provider', 'receiving_country', 'reporting_period', 'collection_date', 'channel_category', 'pickup_method', 'total_cost_pct', 'disclosure_status', 'transfer_fee', 'fee_currency', 'exchange_rate_margin', 'transfer_fee_usd', 'fx_margin_usd', 'component_total_usd', 'published_total_usd', 'component_minus_published_usd', 'breakdown_status']
     # Formatting helper preserves original eligibility and labels undisclosed cost/margin.
     display = out[visible + ['transparent', 'access_point']].copy()
     for col in ['total_cost_pct', 'exchange_rate_margin']:
         display[col] = display[col].astype(object)
         display.loc[display.transparent.eq('no'), col] = 'Unknown: non-transparent'
+    st.caption(PAYOUT_NOTE)
     table(display.drop(columns=['transparent', 'access_point']))
     with st.expander('Technical identifiers and exact provider values'):
         raw_table(rows)

@@ -15,7 +15,7 @@ SCHEMAS = {
  'corridor_summary': IDENTITY + MEASURES + ['relevance_rating', 'relevance_rationale', 'relevance_evidence_source', 'relevance_evidence_date', 'cost_normalized', 'transparency_normalized', 'relevance_normalized', 'cost_weight', 'transparency_weight', 'relevance_weight', 'campaign_priority_score', 'unscored_reasons'],
  'period_summary': IDENTITY + ['reporting_period', 'period_start'] + MEASURES,
  'channel_summary': IDENTITY + ['channel_category'] + MEASURES,
- 'provider_details': IDENTITY + ['service_id', 'provider', 'reporting_period', 'collection_date', 'access_point', 'channel_category', 'transparent', 'transfer_amount_usd', 'transfer_fee', 'fee_currency', 'exchange_rate_margin', 'total_cost_pct'],
+ 'provider_details': IDENTITY + ['service_id', 'provider', 'reporting_period', 'collection_date', 'access_point', 'channel_category', 'pickup_method', 'transparent', 'transfer_amount_usd', 'transfer_fee', 'fee_currency', 'exchange_rate_margin', 'total_cost_pct'],
  'fee_summary': IDENTITY + ['fee_currency', 'median_transfer_fee', 'fee_observations'],
  'fx_margin_summary': IDENTITY + ['fee_currency', 'median_exchange_margin', 'fx_margin_observations'],
 }

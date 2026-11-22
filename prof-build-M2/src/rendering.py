@@ -21,6 +21,9 @@ ACCESS_CHECKLIST = (
     'Can the sender meet the chosen service\'s payment, identification and recipient-access requirements?',
 )
 
+PAYOUT_NOTE = ('Recipient payout is the method recorded at the survey, not the sender\'s access channel. '
+               'Confirm current payout availability and recipient requirements with the provider.')
+
 def access_checklist_html():
     return '<h3>Internet-access discussion checklist</h3><p>Ask the sender before encouraging a channel switch. These are community-validation questions, not facts inferred from price quotes; record no personal answers in this app.</p><ul>' + ''.join('<li>' + escape(item) + '</li>' for item in ACCESS_CHECKLIST) + '</ul>'
 
@@ -120,6 +123,9 @@ def formatted_table(df, provider=False, exact=False):
     for c in out:
         if pd.api.types.is_datetime64_any_dtype(out[c]):
             out[c] = out[c].dt.strftime('%Y-%m-%d')
+    if provider:
+        out['pickup_method'] = out.pickup_method.fillna('Unavailable')
+        out = out.rename(columns={'pickup_method': 'Recipient payout method'})
     # pandas escape=True protects all researcher/provider/source text.
     return '<div class="table-wrap">'+out.to_html(index=False,escape=True,na_rep='Unavailable',float_format=lambda v:format(v, '.17g' if exact else '.6g'))+'</div>'
 
@@ -174,5 +180,5 @@ def body_sections(results,preview=None):
     sections.insert(-1, '<h3>Channel median difference in dollars</h3><p>Counter-only minus Internet-only, for the selected USD-equivalent basket. Positive means counter services have the higher median. Different historical quote groups are not guaranteed individual savings.</p>' + formatted_table(channel_cost_comparison(results)))
     n=m.matching_row_count if preview is None else min(preview,m.matching_row_count)
     details = service_cost_breakdown(results.provider_details)
-    sections += [f'<p>Showing {n} of {m.matching_row_count} service rows. The HTML export contains the complete table. Unknown—non-transparent means the rate was undisclosed, not free.</p>', '<p>Service dollar breakdown: margin percentage times the selected USD-equivalent basket / 100, plus the fee only when its currency is USD. Component-derived and published totals remain separate; source rounding can explain small differences. Unknown or non-USD fee components are not converted or filled with zero.</p>', formatted_table(details if preview is None else details.iloc[:preview],provider=True,exact=True),'<h2>Limitations & attribution</h2><p>'+escape(LIMITATIONS)+'</p><p>Remittance Prices Worldwide, World Bank Group · <a href="https://datacatalog.worldbank.org/search/dataset/0037898/Remittance-Prices-Worldwide">Source</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adaptation: cleaned USA quotes and derived summaries. Outputs stay local.</p>']
+    sections += [f'<p>Showing {n} of {m.matching_row_count} service rows. The HTML export contains the complete table. Unknown—non-transparent means the rate was undisclosed, not free.</p>', '<p>' + escape(PAYOUT_NOTE) + '</p>', '<p>Service dollar breakdown: margin percentage times the selected USD-equivalent basket / 100, plus the fee only when its currency is USD. Component-derived and published totals remain separate; source rounding can explain small differences. Unknown or non-USD fee components are not converted or filled with zero.</p>', formatted_table(details if preview is None else details.iloc[:preview],provider=True,exact=True),'<h2>Limitations & attribution</h2><p>'+escape(LIMITATIONS)+'</p><p>Remittance Prices Worldwide, World Bank Group · <a href="https://datacatalog.worldbank.org/search/dataset/0037898/Remittance-Prices-Worldwide">Source</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adaptation: cleaned USA quotes and derived summaries. Outputs stay local.</p>']
     return sections
