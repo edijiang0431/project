@@ -12,6 +12,8 @@ from src.dashboard_presentation import (
     COMMUNITY_MODE, COST_MODE, MODES, POOLING, DIRECTION, default_weights,
     comparison_table, current_warnings, score_contributions, small_sample_messages,
     period_grid, trend_figure, recent_provider_rows, channel_period_details, quarter_label,
+    COST_SAMPLE_CAUTION, cost_sample_messages,
+    QUARTERLY_COST_SAMPLE_CAUTION, quarterly_cost_sample_groups,
 )
 from src.load_data import load_data, load_preparation_metadata
 from src.load_relevance import load_relevance, validate_relevance
@@ -217,6 +219,10 @@ def show_results(results):
         with summary:
             st.caption('Pooled actual costs and counts come first. Missing scores do not erase descriptive price evidence.')
             st.dataframe(comparison_table(results), hide_index=True, width='stretch')
+            st.caption(COST_SAMPLE_CAUTION)
+            ranking_cautions = cost_sample_messages(results, 'ranking')
+            if ranking_cautions:
+                st.warning('Corridor median cautions:\n\n' + '\n'.join('- ' + message for message in ranking_cautions))
             if results.corridor_summary.campaign_priority_score.isna().any():
                 st.info('Some scores are unavailable. See Scoring status and the input guidance below; missing components remain unavailable.')
             for message in current_warnings(results):
@@ -245,6 +251,12 @@ def show_results(results):
             if grid['Median total cost (%)'].lt(0).any():
                 st.info('Valid negative costs are present. The zero-inclusive scale extends below zero so these observations are not clipped.')
             st.plotly_chart(trend_figure(results, 'cost', scale), width='stretch', key='cost_trend')
+            st.caption('Numbers in parentheses are eligible cost quote counts.')
+            trend_cautions, zero_cost_quarters = quarterly_cost_sample_groups(results)
+            if trend_cautions:
+                st.warning(QUARTERLY_COST_SAMPLE_CAUTION + '\n\n' + '\n'.join('- ' + message for message in trend_cautions))
+            if zero_cost_quarters:
+                st.info('No eligible cost quotes; no median is available for:\n\n' + '\n'.join('- ' + message for message in zero_cost_quarters))
             st.subheader('Usable-cost coverage for the selected basket')
             st.caption('Eligible costs / all matching quotes. Transparent quotes with missing costs are separate from non-transparent exclusions. Missing surveys and zero-quote selections have unavailable coverage.')
             table(cost_coverage(results))

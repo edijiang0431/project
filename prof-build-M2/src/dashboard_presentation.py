@@ -11,6 +11,12 @@ POOLING = ('Corridor summaries pool eligible quotes across selected quarters. Qu
            'A pooled median is not the average of quarterly medians: quarters with more eligible quotes contribute more observations. '
            'Quote counts are not customers, transaction volumes, or market-share weights.')
 DIRECTION = 'Higher scores reflect higher relative sampled costs and/or more quotes flagged non-transparent; community mode also includes documented relevance. Scores do not automatically recommend a campaign or provider.'
+SMALL_SAMPLE_THRESHOLD = 5
+COST_SAMPLE_CAUTION = ('Small-sample caution applies to results based on 1–5 eligible cost quotes. '
+                       'This is a caution rule, not a test of statistical reliability. '
+                       'With zero eligible cost quotes, no median is available.')
+QUARTERLY_COST_SAMPLE_CAUTION = ('Treat quarterly medians based on 1–5 eligible cost quotes cautiously; '
+                                'this rule does not establish statistical reliability.')
 
 
 def default_weights(mode):
@@ -85,9 +91,43 @@ def current_warnings(results):
     return messages
 
 
-def small_sample_messages(results, threshold=5):
+def small_sample_messages(results, threshold=SMALL_SAMPLE_THRESHOLD):
     return [f'Small sample: {r.receiving_country} - {r.channel_category}: {r.observations} eligible cost quotes out of {r.total_quotes} matching quotes. Treat this median cautiously.'
             for r in results.channel_summary.itertuples() if 0 < r.observations <= threshold]
+
+
+def cost_sample_messages(results, scope):
+    """Use the observations behind each displayed median, without changing results."""
+    if scope not in ('ranking', 'trend'):
+        raise ValueError('Choose ranking or trend')
+    rows = results.corridor_summary if scope == 'ranking' else results.period_summary
+    messages = []
+    for row in rows.itertuples():
+        label = row.receiving_country
+        if scope == 'trend':
+            label += ' - ' + quarter_label(row.reporting_period)
+        if row.observations == 0:
+            messages.append(f'{label}: No eligible cost quotes; no median is available.')
+        elif row.observations <= SMALL_SAMPLE_THRESHOLD:
+            messages.append(f'Small sample: {label}: {row.observations} eligible cost quotes. Treat this median cautiously.')
+    return messages
+
+
+def quarterly_cost_sample_groups(results):
+    """Complete chronological quarter/count lists, separating absent cost medians."""
+    small, zero = {}, {}
+    rows = results.period_summary.sort_values(['receiving_country', 'reporting_period'])
+    for row in rows.itertuples():
+        if row.observations == 0:
+            groups = zero
+        elif 0 < row.observations <= SMALL_SAMPLE_THRESHOLD:
+            groups = small
+        else:
+            continue
+        groups.setdefault(row.receiving_country, []).append(
+            f'{quarter_label(row.reporting_period)} ({row.observations})')
+    return tuple([f'{country}: ' + ', '.join(quarters) for country, quarters in groups.items()]
+                 for groups in (small, zero))
 
 
 def period_grid(results):
